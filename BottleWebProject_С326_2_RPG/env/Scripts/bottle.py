@@ -1,4 +1,4 @@
-#!C:\Users\gulya\OneDrive\Desktop\Study\УП0202\BottleWebProject_С326_2_RPG\BottleWebProject_С326_2_RPG\env\Scripts\python.exe
+#!C:\Users\loshk\Source\Repos\BottleWebProject_C326_2_RPG\BottleWebProject_С326_2_RPG\env\Scripts\python.exe
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 """

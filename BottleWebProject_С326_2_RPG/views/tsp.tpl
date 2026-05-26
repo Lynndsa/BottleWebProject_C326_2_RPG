@@ -1,0 +1,1 @@
+% rebase('layout', title=title, message=message, year=year)

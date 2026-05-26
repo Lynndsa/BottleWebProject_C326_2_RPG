@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\gulya\OneDrive\Desktop\Study\УП0202\BottleWebProject_С326_2_RPG\BottleWebProject_С326_2_RPG\env
+set VIRTUAL_ENV=C:\Users\loshk\Source\Repos\BottleWebProject_C326_2_RPG\BottleWebProject_С326_2_RPG\env
 
 if not defined PROMPT set PROMPT=$P$G
 

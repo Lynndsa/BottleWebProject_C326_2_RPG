@@ -31,8 +31,18 @@
   <ItemGroup>
     <Compile Include="app.py" />
     <Compile Include="routes.py" />
+    <Compile Include="validators\bfs_validator.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="validators\dfs_validator.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="validators\tsp_validator.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="validators\" />
     <Folder Include="static\" />
     <Folder Include="static\content\" />
     <Folder Include="static\fonts\" />
@@ -64,8 +74,17 @@
     <Content Include="static\scripts\respond.min.js" />
     <Content Include="static\scripts\_references.js" />
     <Content Include="views\about.tpl" />
+    <Content Include="views\bfs.tpl">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="views\contact.tpl" />
-    <Content Include="views\index.tpl" />
+    <Content Include="views\dfs.tpl">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="views\index.tpl">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="views\tsp.tpl" />
     <Content Include="views\layout.tpl" />
   </ItemGroup>
   <ItemGroup>
