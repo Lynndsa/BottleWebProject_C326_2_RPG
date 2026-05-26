@@ -1,6 +1,11 @@
 ﻿# -*- coding: utf-8 -*-
-from bottle import route, view
+from bottle import Bottle, route, view, static_file
 from datetime import datetime
+
+
+@route('/favicon.ico')
+def favicon():
+    return static_file('favicon.ico', root='./static')
 
 @route('/')
 @view('about') 
