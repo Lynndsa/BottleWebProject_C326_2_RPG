@@ -1,4 +1,13 @@
-﻿# routes.py
+﻿# -*- coding: utf-8 -*-
+from bottle import Bottle, route, view, static_file
+from datetime import datetime
+
+
+@route('/favicon.ico')
+def favicon():
+    return static_file('favicon.ico', root='./static')
+
+# routes.py
 from bottle import route, run, template, static_file, request
 from randoms.tsp_random import generate_random_graph
 # Главная страница с описанием задач
