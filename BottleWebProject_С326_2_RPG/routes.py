@@ -1,62 +1,43 @@
-﻿# -*- coding: utf-8 -*-
-from bottle import route, view
-from datetime import datetime
+﻿# routes.py
+from bottle import route, run, template, static_file
 
+# Главная страница с описанием задач
 @route('/')
-@view('about') 
-def home():
-    return dict(
-        title='About',
-        message='Your application description page.',
-        year=datetime.now().year
-    )
+def index():
+    return template('index', title='Главная', year=2026)
 
-@route('/contact')
-@view('contact')
-def contact():
-    """Renders the contact page."""
-    return dict(
-        title='Contact',
-        message='Your contact page.',
-        year=datetime.now().year
-    )
-
-
-@route('/about')
-@view('about')
-def about():
-    """Renders the about page."""
-    return dict(
-        title='About',
-        message='Your application description page.',
-        year=datetime.now().year
-    )
+# Модуль BFS - распространение вируса
 @route('/bfs')
-@view('bfs')
-def bfs():
-    """Renders the Breadth-First Search (BFS) page."""
-    return dict(
-        title='Обход в ширину (BFS)',
-        message='Визуализация или решение алгоритма BFS.',
-        year=datetime.now().year
-    )
+def bfs_module():
+    return template('bfs_module',
+                   title='Модуль BFS',
+                   year=2026)
 
-@route('/dfs')
-@view('dfs')
-def dfs():
-    """Renders the Depth-First Search (DFS) property page."""
-    return dict(
-        title='Обход в глубину (DFS)',
-        message='Визуализация или решение алгоритма DFS.',
-        year=datetime.now().year
-    )
-
+# Модуль TSP - планирование экскурсий
 @route('/tsp')
-@view('tsp')
-def tsp():
-    """Renders the Traveling Salesperson Problem (TSP) page."""
-    return dict(
-        title='Задача коммивояжёра (TSP)',
-        message='Решение задачи коммивояжёра методами оптимизации.',
-        year=datetime.now().year
-    )
+def tsp_module():
+    return template('tsp_module',
+                   title='Модуль TSP',
+                   year=2026)
+
+# Модуль DFS - анализ блокчейна
+@route('/dfs')
+def dfs_module():
+    return template('dfs_module',
+                   title='Модуль DFS',
+                   year=2026)
+
+# Статика (если не используешь StaticPlugin)
+@route('/static/<filepath:path>')
+def server_static(filepath):
+    return static_file(filepath, root='./static')
+
+# Страница "Об авторах"
+@route('/about')
+def about():
+    return template('about',
+                   title='Об авторах',
+                   year=2026)
+
+if __name__ == '__main__':
+    run(host='localhost', port=8080, debug=True, reloader=True)

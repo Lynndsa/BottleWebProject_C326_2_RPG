@@ -18,7 +18,7 @@
     <SuppressCollectPythonCloudServiceFiles>true</SuppressCollectPythonCloudServiceFiles>
     <Name>BottleWebProject_С326_2_RPG</Name>
     <RootNamespace>BottleWebProject_С326_2_RPG</RootNamespace>
-    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|env1|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -53,6 +53,12 @@
     <Content Include="requirements.txt" />
     <Content Include="static\content\bootstrap.css" />
     <Content Include="static\content\bootstrap.min.css" />
+    <Content Include="static\content\main.css">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="static\content\menu.css">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="static\content\site.css" />
     <Content Include="static\fonts\glyphicons-halflings-regular.eot" />
     <Content Include="static\fonts\glyphicons-halflings-regular.svg" />
@@ -77,7 +83,6 @@
     <Content Include="views\bfs.tpl">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="views\contact.tpl" />
     <Content Include="views\dfs.tpl">
       <SubType>Code</SubType>
     </Content>
@@ -88,6 +93,15 @@
     <Content Include="views\layout.tpl" />
   </ItemGroup>
   <ItemGroup>
+    <Interpreter Include="env1\">
+      <Id>env1</Id>
+      <Version>3.9</Version>
+      <Description>env1 (Python 3.9 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
     <Interpreter Include="env\">
       <Id>env</Id>
       <Version>3.12</Version>
