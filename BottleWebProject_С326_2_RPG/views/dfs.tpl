@@ -1,1 +1,1 @@
-% rebase('layout', title=title, message=message, year=year)
+% rebase('layout.tpl', title='Главная страница', year=year)
