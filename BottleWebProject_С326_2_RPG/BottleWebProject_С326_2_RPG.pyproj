@@ -29,6 +29,15 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="algorithms\bfs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="algorithms\dfs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="algorithms\tsp.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="app.py" />
     <Compile Include="routes.py" />
     <Compile Include="validators\bfs_validator.py">
@@ -42,6 +51,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="algorithms\" />
     <Folder Include="validators\" />
     <Folder Include="static\" />
     <Folder Include="static\content\" />
