@@ -1,0 +1,340 @@
+/* static/content/excursion.css */
+/* ГИПЕР-масштабированный крупный интерфейс TSP в стиле Slate & Sky Blue */
+
+.container-tsp {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 30px 15px;
+}
+
+.page-title {
+    font-size: 3.2rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    color: #0f172a; /* Slate-900 */
+    letter-spacing: -1px;
+}
+
+.subtitle {
+    color: #475569; /* Slate-600 */
+    font-size: 1.4rem;
+    margin-bottom: 3rem;
+    font-weight: 500;
+}
+
+.tsp-card {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 3px solid #e2e8f0;
+    padding: 3.5rem;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.05);
+}
+
+    .tsp-card h2 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 2rem;
+        color: #0f172a;
+        padding-bottom: 1rem;
+        border-bottom: 4px solid #f1f5f9;
+    }
+
+/* Сворачиваемая плашка теории */
+.theory-accordion {
+    background: #ffffff;
+    border: 3px solid #e2e8f0;
+    border-radius: 24px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 8px 35px rgba(15, 23, 42, 0.03);
+    overflow: hidden;
+}
+
+    .theory-accordion summary {
+        padding: 1.8rem 2.5rem;
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: #0284c7;
+        cursor: pointer;
+        user-select: none;
+        outline: none;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+
+        .theory-accordion summary:hover {
+            background: #f0f9ff;
+            color: #0369a1;
+        }
+
+.theory-content {
+    padding: 0 2.5rem 2.5rem 2.5rem;
+    border-top: 3px solid #f1f5f9;
+    font-size: 1.25rem;
+    line-height: 1.8;
+    color: #334155;
+}
+
+    .theory-content p {
+        margin-top: 1.25rem;
+    }
+
+    .theory-content ul {
+        margin-left: 2.2rem;
+        margin-top: 1rem;
+    }
+
+.example-block {
+    background: #f8fafc;
+    border-left: 6px solid #0ea5e9;
+    padding: 2rem;
+    margin-top: 2rem;
+    border-radius: 0 18px 18px 0;
+    font-size: 1.2rem;
+}
+
+    .example-block code {
+        font-family: 'Courier New', monospace;
+        background: #e2e8f0;
+        padding: 0.3rem 0.6rem;
+        border-radius: 8px;
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+/* Форма и поля ввода */
+.fields-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.field-full {
+    margin-top: 2rem;
+}
+
+/* Шапка над полем рёбер для размещения кнопки генерации */
+.field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+label {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #334155;
+}
+
+    label span.hint {
+        font-weight: 600;
+        color: #94a3b8;
+        font-size: 1.05rem;
+        margin-left: 8px;
+    }
+
+/* Кнопка случайной генерации стоимости и рёбер */
+.btn-generate-tsp {
+    display: inline-block;
+    padding: 0.6rem 1.8rem;
+    background: #f1f5f9; /* Slate-100 */
+    color: #334155; /* Slate-700 */
+    font-size: 1.15rem;
+    font-weight: 700;
+    border: 3px solid #cbd5e1;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .btn-generate-tsp:hover {
+        background: #e0f2fe; /* Sky-100 */
+        border-color: #0ea5e9; /* Sky-500 */
+        color: #0369a1; /* Sky-700 */
+    }
+
+    .btn-generate-tsp:active {
+        transform: scale(0.97);
+    }
+
+input[type="number"],
+input[type="text"],
+textarea {
+    width: 100%;
+    padding: 1.1rem 1.4rem;
+    border: 3px solid #cbd5e1;
+    border-radius: 16px;
+    font-size: 1.25rem;
+    color: #0f172a;
+    background: #ffffff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    outline: none;
+}
+
+    input:focus, textarea:focus {
+        border-color: #0284c7;
+        box-shadow: 0 0 0 5px rgba(2, 132, 199, 0.2);
+    }
+
+    input.is-error, textarea.is-error {
+        border-color: #ef4444;
+        background: #fffafb;
+        border-width: 3px;
+    }
+
+.error-msg {
+    font-size: 1.05rem;
+    color: #ef4444;
+    font-weight: 700;
+    margin-top: 6px;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 180px;
+    font-family: 'Courier New', monospace;
+    font-size: 1.2rem;
+    line-height: 1.5;
+}
+
+/* Фирменная МЕГА-кнопка отправки формы */
+.btn-primary-tsp {
+    display: inline-block;
+    margin-top: 2.5rem;
+    padding: 1.25rem 4.5rem;
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 1.4rem;
+    font-weight: 800;
+    border: none;
+    border-radius: 18px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.25);
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+    .btn-primary-tsp:hover {
+        background: #0369a1;
+        box-shadow: 0 10px 28px rgba(2, 132, 199, 0.35);
+    }
+
+    .btn-primary-tsp:active {
+        transform: scale(0.96);
+    }
+
+/* Контейнер интерактивного графа */
+.canvas-container {
+    width: 100%;
+    height: 550px;
+    background: #f8fafc;
+    border: 3px dashed #cbd5e1;
+    border-radius: 20px;
+    margin-top: 1rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.canvas-placeholder {
+    color: #64748b;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 0 3.5rem;
+    line-height: 1.7;
+}
+
+/* Карточки результатов */
+.result-card {
+    background: #f0f9ff;
+    border: 3px solid #bae6fd;
+    border-radius: 24px;
+    padding: 3.5rem;
+    box-shadow: 0 10px 35px rgba(2, 132, 199, 0.07);
+}
+
+    .result-card h2 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #0369a1;
+        margin-bottom: 2rem;
+    }
+
+.result-badge {
+    display: inline-block;
+    background: #e0f2fe;
+    color: #0369a1;
+    border-radius: 12px;
+    padding: 0.5rem 1.4rem;
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 1.75rem;
+}
+
+.route-path {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.route-node {
+    background: #ffffff;
+    border: 3px solid #7dd3fc;
+    border-radius: 50%;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0369a1;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1);
+}
+
+    .route-node.hotel {
+        background: #0f172a;
+        color: #ffffff;
+        border-color: #0f172a;
+    }
+
+.route-arrow {
+    color: #0ea5e9;
+    font-size: 2.2rem;
+    font-weight: 800;
+}
+
+.total-time {
+    margin-top: 2.5rem;
+    font-size: 1.35rem;
+    color: #334155;
+}
+
+    .total-time strong {
+        color: #0284c7;
+        font-size: 1.85rem;
+        font-weight: 900;
+    }
+
+.result-error {
+    background: #fff5f5;
+    border: 3px solid #fca5a5;
+    border-radius: 24px;
+    padding: 2.5rem;
+    color: #b91c1c;
+    font-size: 1.3rem;
+    font-weight: 700;
+    box-shadow: 0 8px 30px rgba(239, 68, 68, 0.06);
+}
