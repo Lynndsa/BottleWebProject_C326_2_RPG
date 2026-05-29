@@ -32,7 +32,7 @@
 | Python 3.10+              | Язык программирования      |
 | Bottle                    | Веб-фреймворк              |
 | Graphviz / svgwrite       | Построение SVG-графов      |
-| HTML5 / CSS3 / JavaScript | Пользовательский интерфейс |
+| TPL / CSS / JavaScript    | Пользовательский интерфейс |
 | Visual Studio / VS Code   | Среда разработки           |
 
 ---
