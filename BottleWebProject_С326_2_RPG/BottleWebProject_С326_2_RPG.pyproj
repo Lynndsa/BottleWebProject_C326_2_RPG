@@ -18,7 +18,7 @@
     <SuppressCollectPythonCloudServiceFiles>true</SuppressCollectPythonCloudServiceFiles>
     <Name>BottleWebProject_С326_2_RPG</Name>
     <RootNamespace>BottleWebProject_С326_2_RPG</RootNamespace>
-    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|env1|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -29,6 +29,15 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="algorithms\bfs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="algorithms\dfs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="algorithms\tsp.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="app.py" />
     <Compile Include="routes.py" />
     <Compile Include="validators\bfs_validator.py">
@@ -42,6 +51,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="algorithms\" />
     <Folder Include="validators\" />
     <Folder Include="static\" />
     <Folder Include="static\content\" />
@@ -53,7 +63,16 @@
     <Content Include="requirements.txt" />
     <Content Include="static\content\bootstrap.css" />
     <Content Include="static\content\bootstrap.min.css" />
+    <Content Include="static\content\main.css">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="static\content\menu.css">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="static\content\site.css" />
+    <Content Include="static\content\tsp.css">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="static\fonts\glyphicons-halflings-regular.eot" />
     <Content Include="static\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="static\fonts\glyphicons-halflings-regular.ttf" />
@@ -78,7 +97,6 @@
     <Content Include="views\bfs.tpl">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="views\contact.tpl" />
     <Content Include="views\dfs.tpl">
       <SubType>Code</SubType>
     </Content>
@@ -89,6 +107,15 @@
     <Content Include="views\layout.tpl" />
   </ItemGroup>
   <ItemGroup>
+    <Interpreter Include="env1\">
+      <Id>env1</Id>
+      <Version>3.9</Version>
+      <Description>env1 (Python 3.9 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
     <Interpreter Include="env\">
       <Id>env</Id>
       <Version>3.12</Version>
