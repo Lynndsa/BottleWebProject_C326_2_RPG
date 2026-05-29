@@ -13,9 +13,8 @@
     
     <script src="/static/scripts/modernizr-2.6.2.js"></script>
 </head>
-
 <body>
-    <nav class="navbar navbar-custom navbar-static-top">
+    <nav class="navbar navbar-custom">
         <div class="container navbar-container">
             
             <div class="navbar-header">
@@ -40,14 +39,23 @@
 
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav navbar-right-custom">
-                    <li><a href="/">Главная</a></li>
-                    <li><a href="/bfs">Модуль BFS</a></li>
-                    <li><a href="/dfs">Модуль DFS</a></li>
-                    <li><a href="/tsp">Модуль TSP</a></li>
-                    <li><a href="/about">Об авторах</a></li>
+                    <li class="{{'active' if request_path == '/' else ''}}">
+                        <a href="/">Главная</a>
+                    </li>
+                    <li class="{{'active' if request_path == '/bfs' else ''}}">
+                        <a href="/bfs">Модуль BFS</a>
+                    </li>
+                    <li class="{{'active' if request_path == '/dfs' else ''}}">
+                        <a href="/dfs">Модуль DFS</a>
+                    </li>
+                    <li class="{{'active' if request_path.startswith('/tsp') or request_path.startswith('/excursion') else ''}}">
+                        <a href="/tsp">Модуль TSP</a>
+                    </li>
+                    <li class="{{'active' if request_path == '/about' else ''}}">
+                        <a href="/about">Об авторах</a>
+                    </li>
                 </ul>
             </div>
-
         </div>
     </nav>
 
