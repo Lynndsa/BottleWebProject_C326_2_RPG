@@ -1,16 +1,8 @@
 % rebase('layout.tpl', title='Главная страница', year=year)
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Планирование экскурсий — TSP</title>
-  
-  <link rel="stylesheet" type="text/css" href="/static/content/bootstrap.min.css" />
-  <link rel="stylesheet" type="text/css" href="/static/content/menu.css" />
-  <link rel="stylesheet" type="text/css" href="/static/content/tsp.css" />
-</head>
-<body>
+
+<link rel="stylesheet" type="text/css" href="/static/content/menu.css" />
+<link rel="stylesheet" type="text/css" href="/static/content/tsp.css" />
+
 <div class="container-tsp">
  
 % _form   = defined('form')   and form   or {}
@@ -132,7 +124,7 @@
         <div class="tsp-card" style="margin-top: 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
-              <h2 style="margin: 0; font-size: 20px;">Параметры графа</h2>
+              <h2 style="margin: 0; font-size: 20px;">Параметны графа</h2>
               
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button type="submit" onclick="document.getElementById('buttonAction').value='generate';" class="btn-generate-tsp" style="margin: 0; height: 38px; padding: 0 12px; font-size: 13px;">
@@ -219,79 +211,4 @@
             <h2>Оптимальный маршрут</h2>
             <div class="result-badge">Маршрут найден</div>
      
-            <div class="route-path" style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 20px 0;">
-              % for idx, node in enumerate(_result['path']):
-                % is_hotel = (idx == 0 or idx == len(_result['path']) - 1)
-                % node_cls = 'route-node hotel' if is_hotel else 'route-node'
-                <div class="{{node_cls}}">{{node}}</div>
-                % if idx < len(_result['path']) - 1:
-                  <span class="route-arrow" style="color: #64748b; font-weight: bold;">&#8594;</span>
-                % end
-              % end
-            </div>
-     
-            <p class="total-time" style="font-size: 16px; margin: 0;">
-              Суммарное время: <strong style="font-size: 20px; color: #1e40af;">{{_result['total_time']}}</strong> ед.
-            </p>
-          </div>
-          
-          % if _result.get('matrix') and _result.get('nodes'):
-            <div class="tsp-card" style="margin-top: 0; margin-bottom: 0;">
-              <h2 style="margin-bottom: 5px;">📊 Матрица кратчайших расстояний (Дейкстра)</h2>
-              <p class="text-muted" style="font-size: 13px; margin-bottom: 15px;">
-                Промежуточный этап расчёта: минимальное время перемещения между ключевыми точками, вычисленное алгоритмом Дейкстры.
-              </p>
-              
-              <div class="table-responsive matrix-container">
-                <table class="table matrix-table">
-                  <thead>
-                    <tr>
-                      <th>От \ До</th>
-                      % for node in _result['nodes']:
-                        <th>
-                          {{node}}
-                          % if str(node) == str(val_k):
-                            <span class="hotel-marker">ОТЕЛЬ</span>
-                          % end
-                        </th>
-                      % end
-                    </tr>
-                  </thead>
-                  <tbody>
-                    % for u in _result['nodes']:
-                      <tr>
-                        <td class="row-header">
-                          {{u}}
-                        </td>
-                        % for v in _result['nodes']:
-                          % val = _result['matrix'].get(u, {}).get(v, float('inf'))
-                          
-                          % if val == float('inf'):
-                            <td class="cell-value cell-muted">&infin;</td>
-                          % elif u == v:
-                            <td class="cell-value cell-muted">0</td>
-                          % else:
-                            <td class="cell-value">{{val}}</td>
-                          % end
-                        % end
-                      </tr>
-                    % end
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          % end
-
-        % else:
-          <div class="result-error" style="background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 15px; border-radius: 12px; font-weight: 700; margin-bottom: 0;">
-            ⚠️ Маршрут не найден — граф несвязен или не все вершины достижимы из отеля.
-          </div>
-        % end
-      % end
-      
-    </div>
-  </div>
- 
-</div>
-</body>
-</html>
+            <div class="route-path" style="display: flex; flex-wrap: wrap; align-items
