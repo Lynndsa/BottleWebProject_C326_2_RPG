@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="algorithms\" />
+    <Folder Include="static\content\image\" />
     <Folder Include="validators\" />
     <Folder Include="static\" />
     <Folder Include="static\content\" />
@@ -60,6 +61,8 @@
     <Folder Include="views\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="static\content\image\excursion_theory_base.svg" />
+    <Content Include="static\content\image\excursion_theory_path.svg" />
     <Content Include="requirements.txt" />
     <Content Include="static\content\bootstrap.css" />
     <Content Include="static\content\bootstrap.min.css" />
