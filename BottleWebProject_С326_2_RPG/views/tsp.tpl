@@ -199,14 +199,23 @@
           % end
         </div>
 
+        <div style="display:flex; gap:10px; margin-top:15px; align-items:center;">
+          <button type="button" id="btn-add-edge"
+                  class="btn btn-light btn-sm btn-preset">
+            ➕ Добавить ребро
+          </button>
+        </div>
+
         <button type="submit" class="btn-submit-tsp"
-                style="margin-top:20px; width:100%; max-width:320px;">
+                style="margin-top:15px; width:100%; max-width:320px;">
           Найти оптимальный маршрут
         </button>
       </div>
 
     </div>
   </form>
+
+  <script src="/static/scripts/tsp_edges.js"></script>
   <!-- конец формы -->
 
   <!-- Визуализация -->

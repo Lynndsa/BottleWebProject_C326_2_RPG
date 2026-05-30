@@ -2,17 +2,14 @@ import random
 
 
 def generate_random_graph(n=None, m=None):
-
     if n is None:
         n = random.randint(5, 15)
     if m is None:
         m = random.randint(2, min(6, n - 1))
 
-    # Отель — случайная вершина
     k = random.randint(1, n)
 
-    # Строим случайный связный граф:
-    # Сначала создаём остовное дерево (гарантирует связность)
+    # Остовное дерево — гарантирует связность
     vertices = list(range(1, n + 1))
     random.shuffle(vertices)
 
@@ -28,10 +25,12 @@ def generate_random_graph(n=None, m=None):
             edges.add(edge)
             edge_list.append((u, v, w))
 
-    # Добавляем несколько случайных рёбер для плотности
-    extra = random.randint(n // 2, n)
+    # Добавляем дополнительные рёбра для плотности
+    extra   = random.randint(n // 2, n)
+    target  = len(edge_list) + extra   # <-- фикс: считаем целевое количество заранее
     attempts = 0
-    while len(edge_list) < len(edge_list) + extra and attempts < extra * 3:
+
+    while len(edge_list) < target and attempts < extra * 5:
         u = random.randint(1, n)
         v = random.randint(1, n)
         if u != v:
@@ -42,7 +41,6 @@ def generate_random_graph(n=None, m=None):
                 edge_list.append((u, v, w))
         attempts += 1
 
-    # Выбираем достопримечательности — любые вершины кроме отеля
     candidates = [v for v in range(1, n + 1) if v != k]
     sites = random.sample(candidates, min(m, len(candidates)))
 

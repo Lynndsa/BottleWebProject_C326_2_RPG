@@ -5,6 +5,7 @@ from validators.tsp_validator import parse_input, parse_txt_file
 from visual.tsp_visual import build_svg
 from algorithms.tsp_algorithm import solve_tsp
 
+
 @route('/favicon.ico')
 def favicon():
     return static_file('favicon.ico', root='./static')
@@ -17,12 +18,14 @@ def index():
 def bfs_module():
     return template('bfs', title='Модуль BFS', year=2026, request_path=request.path)
 
+
 # ================================================================
 #  Модуль TSP
 # ================================================================
 
 def _tsp_defaults():
     return dict(title='Модуль TSP', year=2026, request_path=request.path)
+
 
 @route('/tsp', method='GET')
 def tsp_get():
@@ -32,20 +35,13 @@ def tsp_get():
 @route('/tsp/random', method='POST')
 def tsp_random():
     raw = generate_random_graph()
-    # Конвертируем edges строку → u_i / v_i / w_i для таблицы
-    form = {
-        'n':     raw['n'],
-        'm':     raw['m'],
-        'k':     raw['k'],
-        'sites': raw['sites'],
-    }
+    form = {'n': raw['n'], 'm': raw['m'], 'k': raw['k'], 'sites': raw['sites']}
     for i, line in enumerate(raw['edges'].strip().splitlines(), 1):
         parts = line.strip().split()
         if len(parts) == 3:
             form[f'u_{i}'] = parts[0]
             form[f'v_{i}'] = parts[1]
             form[f'w_{i}'] = parts[2]
-
     return template('tsp', **_tsp_defaults(), form=form, errors={})
 
 
@@ -62,8 +58,6 @@ def tsp_post():
                             errors={'global': 'Не удалось прочитать файл'})
 
         form_data, errors = parse_txt_file(content)
-
-        # Конвертируем edges строку → u_i / v_i / w_i
         form = {k: v for k, v in form_data.items() if k != 'edges'}
         for i, line in enumerate(form_data.get('edges', '').strip().splitlines(), 1):
             parts = line.strip().split()
@@ -71,42 +65,39 @@ def tsp_post():
                 form[f'u_{i}'] = parts[0]
                 form[f'v_{i}'] = parts[1]
                 form[f'w_{i}'] = parts[2]
-
         return template('tsp', **_tsp_defaults(), form=form, errors=errors)
 
-    # --- Сборка рёбер из таблицы u_i / v_i / w_i → edges_text ---
-    n_raw = request.forms.get('n', '').strip()
+    # --- Читаем основные поля ---
+    n_raw = request.forms.get('n',     '').strip()
+    m     = request.forms.get('m',     '').strip()
+    k     = request.forms.get('k',     '').strip()
+    sites = request.forms.get('sites', '').strip()
+
+    # --- Собираем ВСЕ рёбра из таблицы (включая добавленные кнопкой) ---
     edges_lines = []
-    try:
-        n_int = int(n_raw)
-        for i in range(1, n_int + 1):
-            u = request.forms.get(f'u_{i}', '').strip()
-            v = request.forms.get(f'v_{i}', '').strip()
-            w = request.forms.get(f'w_{i}', '').strip()
+    form = {'n': n_raw, 'm': m, 'k': k, 'sites': sites}
+    i = 1
+    while True:
+        u = request.forms.get(f'u_{i}', '').strip()
+        v = request.forms.get(f'v_{i}', '').strip()
+        w = request.forms.get(f'w_{i}', '').strip()
+        if u == '' and v == '' and w == '':
+            if not any(request.forms.get(f'u_{j}') for j in range(i + 1, i + 3)):
+                break
+        else:
+            form[f'u_{i}'] = u
+            form[f'v_{i}'] = v
+            form[f'w_{i}'] = w
             if u and v and w:
                 edges_lines.append(f'{u} {v} {w}')
-    except (ValueError, TypeError):
-        pass
+        i += 1
+        if i > 500:
+            break
 
     edges_text = '\n'.join(edges_lines)
 
-    n      = n_raw
-    m      = request.forms.get('m',     '').strip()
-    k      = request.forms.get('k',     '').strip()
-    sites  = request.forms.get('sites', '').strip()
-
-    # Собираем form для восстановления таблицы при ошибке
-    form = {'n': n, 'm': m, 'k': k, 'sites': sites}
-    try:
-        for i in range(1, int(n) + 1):
-            form[f'u_{i}'] = request.forms.get(f'u_{i}', '')
-            form[f'v_{i}'] = request.forms.get(f'v_{i}', '')
-            form[f'w_{i}'] = request.forms.get(f'w_{i}', '')
-    except (ValueError, TypeError):
-        pass
-
     # --- Валидация ---
-    graph, hotel, targets, errors = parse_input(n, edges_text, k, sites)
+    graph, hotel, targets, errors = parse_input(n_raw, edges_text, k, sites)
 
     if errors:
         return template('tsp', **_tsp_defaults(), form=form, errors=errors)
@@ -131,7 +122,7 @@ def tsp_post():
                     result=result, svg_html=svg_html)
 
 
-# ================================================================
+
 @route('/dfs', method=['GET', 'POST'])
 def dfs_module():
     return template('dfs', title='Модуль DFS', year=2026, request_path=request.path)
