@@ -1,7 +1,5 @@
-﻿/* static/content/main.css */
-/* УЛЬТРА-КРУПНЫЙ ШРИФТ, КОМПАКТНЫЕ КАРТОЧКИ И ВСТРОЕННАЯ СПРАВКА */
-
-:root {
+﻿:root {
+    /* Цветовая палитра (Tailwind-стиль) */
     --blue-50: #f0f9ff;
     --blue-100: #e0f2fe;
     --blue-200: #bae6fd;
@@ -15,9 +13,11 @@
     --teal-500: #14b8a6;
     --teal-600: #0d9488;
     --teal-700: #0f766e;
+    /* Типографика и фон */
     --text-main: #0f172a;
     --text-muted: #64748b;
     --bg-page: #f8fafc;
+    /* UI-константы */
     --radius: 16px;
     --shadow-sm: 0 2px 8px rgba(14, 165, 233, 0.08);
     --shadow-lg: 0 12px 24px rgba(14, 165, 233, 0.15);
@@ -25,15 +25,17 @@
 
 /* === БАЗА СТРАНИЦЫ === */
 body {
+    /* Градиентный фон для визуальной глубины */
     background: linear-gradient(180deg, var(--blue-50) 0%, var(--bg-page) 100%);
     color: var(--text-main);
     margin: 0;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     line-height: 1.6;
-    font-size: 15px;
+    font-size: 18px;
 }
 
 .container.body-content {
+    /* Синхронизация ширины контента с навбаром */
     max-width: 1600px !important;
     width: 95% !important;
     padding: 0 40px;
@@ -42,7 +44,7 @@ body {
 .graph-tasks-wrapper {
     max-width: 100%;
     margin: 0 auto;
-    padding: 4rem 0 6rem;
+    padding: 4rem 0 6rem; /* Отступы сверху/снизу для секции */
 }
 
 /* === ШАПКА КОНТЕНТА === */
@@ -71,16 +73,17 @@ body {
         font-size: 1.8rem !important;
         color: var(--text-muted);
         margin: 1.25rem 0 0;
-        max-width: 950px;
+        max-width: 950px; /* Ограничение ширины для читаемости */
     }
 
 /* === СЕТКА КАРТОЧЕК === */
 .tasks-grid {
+    /* Адаптивная сетка: автозаполнение + минимальная ширина карточки */
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
     gap: 3.5rem;
     margin: 0 0 5rem;
-    align-items: stretch;
+    align-items: stretch; /* Карточки одной высоты */
 }
 
 /* === КАРТОЧКА === */
@@ -92,7 +95,7 @@ body {
     transition: all 0.3s ease;
     overflow: hidden;
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Flex для прижатия футера к низу */
     height: 100%;
 }
 
@@ -131,6 +134,7 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* Динамическая окраска бейджей по порядку карточек */
 .task-card:nth-child(1) .badge {
     background: var(--blue-500) !important;
 }
@@ -146,7 +150,7 @@ body {
 /* Тело карточки */
 .card-body {
     padding: 2.5rem 2.5rem 1.5rem 2.5rem;
-    flex: 1;
+    flex: 1; /* Занимает всё свободное место, толкая футер вниз */
     display: flex;
     flex-direction: column;
 }
@@ -159,7 +163,7 @@ body {
         font-weight: 500;
     }
 
-/* 🔥 СТИЛИ ДЛЯ ВСТРОЕННОЙ СПРАВКИ ВНУТРИ КАРТОЧКИ */
+/*  СТИЛИ ДЛЯ ВСТРОЕННОЙ СПРАВКИ ВНУТРИ КАРТОЧКИ */
 .card-help-box {
     padding: 1.2rem 1.5rem;
     margin-bottom: 2rem;
@@ -169,7 +173,7 @@ body {
     color: #475569;
 }
 
-/* Индивидуальные тона для блоков справок в зависимости от модуля */
+/* Цветовая привязка справок к модулям */
 .task-card:nth-child(1) .card-help-box {
     background-color: #f0f9ff;
     border-left: 5px solid var(--blue-500);
@@ -203,7 +207,7 @@ body {
         display: flex;
         align-items: baseline;
         gap: 0.8rem;
-        border-bottom: 2px dashed var(--blue-100);
+        border-bottom: 2px dashed var(--blue-100); /* Разделитель строк */
     }
 
         .params-list li:last-child {
@@ -213,7 +217,7 @@ body {
     .params-list strong {
         color: var(--blue-600);
         font-weight: 700;
-        min-width: 210px;
+        min-width: 210px; /* Фиксированная ширина для выравнивания двоеточий */
         font-size: 1.5rem;
     }
 
@@ -233,13 +237,13 @@ body {
     background: transparent !important;
     border-top: 2px solid var(--blue-100) !important;
     padding: 0 !important;
-    margin-top: auto;
+    margin-top: auto; /* Прижимает кнопку к низу карточки */
 }
 
 .btn {
     font-weight: 700;
     padding: 1.8rem 2rem;
-    border-radius: 0 0 16px 16px;
+    border-radius: 0 0 16px 16px; /* Скругление только снизу */
     transition: all 0.3s ease;
     border: none;
     width: 100%;
@@ -251,7 +255,7 @@ body {
     box-sizing: border-box;
 }
 
-/* Градиенты кнопок */
+/* Градиентные кнопки с ховер-сдвигом в тёмную сторону */
 .btn-blue {
     background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 100%);
     color: #fff;
@@ -285,17 +289,17 @@ body {
 /* === АДАПТИВНОСТЬ === */
 @media (max-width: 1200px) {
     .tasks-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr); /* 2 колонки на средних экранах */
     }
 }
 
 @media (max-width: 991px) {
     .tasks-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Одна колонка на планшетах/мобильных */
     }
 
     .graph-tasks-wrapper {
-        padding: 3rem 1.5rem 4rem;
+        padding: 3rem 1.5rem 4rem; /* Уменьшение боковых отступов */
     }
 }
 
@@ -307,7 +311,7 @@ body {
     .params-list strong {
         min-width: 150px;
     }
-
+    /* Ужимаем ширину ключей */
     .card-body {
         padding: 1.75rem;
     }
@@ -326,6 +330,7 @@ body {
     }
 }
 
+/* Каскадное появление карточек при загрузке */
 .task-card {
     animation: fadeInUp 0.5s ease backwards;
 }

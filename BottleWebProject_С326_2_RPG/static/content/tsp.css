@@ -1,57 +1,148 @@
-﻿/* ==========================================================================
-   Стили для модуля "Планирование экскурсий" (TSP)
-   ========================================================================== */
+﻿/* Вспомогательные утилиты */
+.d-none {
+    display: none !important;
+}
 
-/* Кастомные алерты */
+/* Контейнер и сетка адаптивного лейаута */
+.container-tsp {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.tsp-grid-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: stretch;
+}
+
+.tsp-grid-col {
+    flex: 1 1 340px;
+    min-width: 340px;
+}
+
+/* Кастомные blocks уведомлений и ошибок */
 .tsp-alert-danger {
     border-radius: 12px;
     font-weight: 700;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     padding: 15px;
 }
 
-/* Стили внутри теории */
-.theory-content hr {
-    border-color: #e2e8f0;
-    margin: 25px 0;
+.theory-card-wrapper {
+    max-width: 1600px;
+    margin: 0 auto 25px auto;
 }
 
-.theory-img-wrapper {
-    text-align: center;
+.theory-accordion-clean {
+    border: none;
+    border-radius: 0;
+}
+
+    .theory-accordion-clean summary {
+        font-weight: 600;
+        padding: 12px 20px;
+        background: transparent;
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+/* Контентная область внутри теории */
+.theory-content-white {
+    background: #ffffff;
+    border-radius: 0 0 12px 12px;
+    padding: 30px 41px;
+    color: #0f172a;
+    font-size: 15.5px;
+    line-height: 1.55;
+}
+
+    .theory-content-white h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 14px;
+    }
+
+    .theory-content-white hr + h3,
+    .theory-content-white p + h3 {
+        margin-top: 24px;
+    }
+
+    .theory-content-white h4 {
+        font-size: 16.5px;
+        font-weight: 650;
+        margin-top: 18px;
+        margin-bottom: 8px;
+    }
+
+    /* Списки и элементы перечисления в теории */
+    .theory-content-white ol,
+    .theory-content-white ul {
+        padding-left: 22px;
+        margin-bottom: 12px;
+    }
+
+    .theory-content-white li {
+        margin-bottom: 6px;
+        line-height: 1.5;
+    }
+
+.theory-hr {
     margin: 20px 0;
+    border: 0;
+    border-top: 1px solid #e2e8f0;
 }
 
-.theory-img {
+.theory-paths-list {
+    margin-bottom: 15px;
+}
+
+/* Изображения и графические схемы в теории */
+.theory-content-white .theory-img-wrapper {
+    margin: 0;
+    text-align: center;
+}
+
+.theory-content-white .theory-img {
+    width: auto;
     max-width: 100%;
-    height: auto;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.theory-caption {
-    font-size: 13px;
+    .theory-content-white .theory-img.img-lg {
+        max-height: 300px;
+    }
+
+    .theory-content-white .theory-img.img-md {
+        max-height: 300px;
+    }
+
+.theory-content-white .theory-caption {
+    margin-bottom: 0;
+    margin-top: 6px;
+    font-size: 13.5px;
+    font-style: italic;
     color: #64748b;
-    margin-top: 8px;
 }
 
-.theory-content ul {
-    margin-bottom: 20px;
-}
-
-/* Таблицы в теории */
-.math-table-custom {
+/* Математические и матричные таблицы в теории */
+.theory-content-white .math-table-custom {
+    margin: 14px 0;
+    font-size: 14.5px;
+    width: 100%;
     max-width: 500px;
     background: #ffffff;
     border-radius: 8px;
     overflow: hidden;
-    margin-bottom: 20px;
 }
 
-    .math-table-custom thead {
-        background: #f1f5f9;
-    }
+.math-table-custom thead {
+    background: #f1f5f9;
+}
 
-/* Панели-карточки (Улучшено: теперь они железно одинаковой высоты) */
 .card-panel {
     background: #ffffff;
     padding: 25px;
@@ -67,12 +158,26 @@
         font-size: 20px;
         color: #0f172a;
         font-weight: 700;
+        margin-top: 0;
         margin-bottom: 20px;
     }
 
-/* Пресеты и формы */
+/* Специфичные модификаторы для разметки панелей */
+.panel-form-layout {
+    margin-bottom: 0;
+    height: auto;
+}
+
+.edges-table-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* Кнопки автоматического заполнения (пресеты задач) */
 .preset-buttons {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     display: flex;
     gap: 10px;
 }
@@ -84,6 +189,7 @@
     font-weight: 500;
     background-color: #ffffff;
     transition: all 0.2s ease;
+    flex: 1;
 }
 
     .btn-preset:hover {
@@ -91,6 +197,27 @@
         border-color: #cbd5e1;
     }
 
+/* Строки и группы элементов формы параметров */
+.tsp-form-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.tsp-form-col {
+    flex: 1;
+    min-width: 0;
+}
+
+.form-group.mb-16 {
+    margin-bottom: 16px;
+}
+
+.form-group.mb-20 {
+    margin-bottom: 20px;
+}
+
+/* Стилизация текстовых подписей (лейблов) */
 .form-label-custom {
     display: block;
     font-size: 13px;
@@ -108,7 +235,7 @@
         color: #64748b;
     }
 
-/* Кастомные инпуты с плавным фокусом */
+/* Кастомные поля ввода и их состояния (Focus / Error) */
 .form-control-custom {
     width: 100%;
     border-radius: 10px;
@@ -125,7 +252,6 @@
         box-shadow: 0 0 0 3px rgba(0, 128, 204, 0.15);
     }
 
-    /* Подсветка ошибок валидации */
     .form-control-custom.is-error {
         border-color: #ef4444;
         background-color: #fef2f2;
@@ -135,7 +261,7 @@
             box-shadow: 0 0 0 3px rgba(239, 44, 44, 0.15);
         }
 
-/* Кнопка отправки */
+/* Главная кнопка запуска расчета (алгоритма TSP) */
 .btn-submit-tsp {
     background: #0080cc;
     border: none;
@@ -146,30 +272,100 @@
     color: #ffffff;
     cursor: pointer;
     transition: background 0.2s ease;
-    margin-top: auto; /* Выталкивает кнопку всегда к нижнему краю карточки */
+    margin-top: auto;
 }
 
     .btn-submit-tsp:hover {
         background: #006fa3;
     }
 
-/* Правая панель (Визуализация) */
+/* Таблица загруженных ребер графа */
+.edges-file-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    table-layout: fixed;
+}
+
+    .edges-file-table th,
+    .edges-file-table td {
+        border: 1px solid #cbd5e1;
+        padding: 10px 16px;
+        text-align: center;
+        word-break: break-word;
+    }
+
+    .edges-file-table thead {
+        background: #f1f5f9;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .edges-file-table th {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .edges-file-table tbody tr:nth-child(even) {
+        background: #f8fafc;
+    }
+
+    .edges-file-table tbody tr:hover {
+        background: #e0f2fe;
+    }
+
+/* Обертка для обеспечения прокрутки таблицы */
+.table-responsive {
+    flex: 1;
+    max-height: 440px;
+    overflow-y: auto;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+}
+
+    /* Стилизация скроллбара в Webkit-браузерах */
+    .table-responsive::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+.tsp-visual-wrapper {
+    margin-top: 20px;
+}
+
+/* Базовый контейнер для вывода визуальных данных */
 .visual-container {
     border: 1px solid #f1f5f9;
     border-radius: 12px;
-    min-height: 350px;
+    min-height: 250px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #f8fafc;
 }
 
+/* Область отображения сгенерированного SVG-графа */
 .graph-svg-output {
     width: 100%;
     padding: 10px;
     text-align: center;
 }
 
+/* Блок текстового вывода найденного маршрута обхода */
 .result-text-output {
     padding: 20px;
     text-align: left;
@@ -188,6 +384,7 @@
     margin-bottom: 8px;
 }
 
+/* Заглушки (placeholder) при отсутствии данных */
 .placeholder-text {
     color: #64748b;
     font-size: 14px;
@@ -197,147 +394,74 @@
     margin: 0 auto;
 }
 
-/* Подсветка текста результатов */
+.placeholder-empty-table {
+    padding-top: 80px;
+}
+
+.placeholder-padded {
+    padding: 60px 0;
+}
+
+/* Стили для акцентной подсветки результатов (длина пути, вершины) */
 .text-highlight-blue {
     color: #0080cc;
     font-weight: 600;
+    font-size: 1.25rem;
 }
 
 .text-highlight-green {
     color: #10b981;
     font-weight: 600;
+    font-size: 1.25rem;
 }
-
-/* Белая карточка для блока теории */
-.theory-card-wrapper {
-    max-width: 1600px;
-    margin: 0 auto 25px auto;
-}
-
-.theory-accordion-clean {
-    border: none;
-    border-radius: 0;
-}
-
-    .theory-accordion-clean summary {
-        font-weight: 600;
-        padding: 12px 20px;
-        background: transparent;
-        cursor: pointer;
-        font-size: 14px;
-    }
-
-/* Контент внутри открытого спойлера */
-.theory-content-white {
-    background: #ffffff;
-    border-radius: 0 0 12px 12px;
-    padding: 20px 25px;
-    color: #0f172a;
-    font-size: 13.5px;
-    line-height: 1.55;
-}
-
-    .theory-content-white h3 {
-        font-size: 16px;
-        font-weight: 700;
-        margin-top: 15px;
-        margin-bottom: 10px;
-    }
-
-    .theory-content-white h4 {
-        font-size: 14.5px;
-        font-weight: 700;
-        margin-top: 15px;
-        margin-bottom: 8px;
-    }
-
-    .theory-content-white ol,
-    .theory-content-white ul {
-        padding-left: 20px;
-    }
-
-    .theory-content-white li {
-        margin-bottom: 8px;
-    }
-
-/* ====== Таблица рёбер из файла ====== */
-.edges-table-wrapper {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
-
-.edges-file-table {
+.matrix-input-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 6px;
     font-size: 14px;
 }
 
-    .edges-file-table thead {
-        background: #f1f5f9;
-        position: sticky;
-        top: 0; /* Чтобы шапка таблицы не улетала при скролле */
-        z-index: 1;
-    }
-
-    .edges-file-table th,
-    .edges-file-table td {
-        border: 1px solid #cbd5e1;
-        padding: 10px 16px;
+    .matrix-input-table th {
+        font-weight: 600;
+        color: #64748b;
+        padding: 6px;
         text-align: center;
+        min-width: 50px;
     }
 
-    .edges-file-table th {
-        font-weight: 700;
-        color: #0f172a;
+    .matrix-input-table tbody th {
+        text-align: right;
+        padding-right: 10px;
+        min-width: 35px;
     }
 
-    .edges-file-table tbody tr:nth-child(even) {
-        background: #f8fafc;
-    }
-
-    .edges-file-table tbody tr:hover {
-        background: #e0f2fe;
-    }
-
-/* Красивый кастомный скроллбар для контейнера таблицы */
-.table-responsive {
-    flex: 1;
-    max-height: 410px; /* Идеальный размер, чтобы сравнять высоту с формой параметров */
-    overflow-y: auto;
+.matrix-cell-input {
+    width: 100%;
+    height: 38px;
+    padding: 4px;
     border: 1px solid #cbd5e1;
     border-radius: 8px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f172a;
+    background-color: #ffffff;
+    transition: all 0.15s ease;
 }
 
-    .table-responsive::-webkit-scrollbar {
-        width: 6px;
+    .matrix-cell-input:hover:not(:read-only) {
+        border-color: #94a3b8;
     }
 
-    .table-responsive::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 0 8px 8px 0;
+    .matrix-cell-input:focus {
+        outline: none;
+        border-color: #0080cc;
+        box-shadow: 0 0 0 3px rgba(0, 128, 204, 0.15);
     }
 
-    .table-responsive::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-
-        .table-responsive::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-.container-tsp {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 20px;
+.matrix-cell-disabled {
+    background-color: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
 }
-
-.edges-file-table {
-    width: 100%;
-    table-layout: fixed;
-}
-
-    .edges-file-table th,
-    .edges-file-table td {
-        word-break: break-word;
-    }
