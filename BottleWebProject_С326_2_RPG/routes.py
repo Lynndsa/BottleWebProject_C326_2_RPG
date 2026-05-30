@@ -1,4 +1,7 @@
-﻿# -*- coding: utf-8 -*-
+﻿# routes.py
+from bottle import route, run, template, static_file, request
+from randoms.tsp_random import generate_random_graph
+# -*- coding: utf-8 -*-
 from bottle import Bottle, route, view, static_file, run, template, request
 from datetime import datetime
 
@@ -23,13 +26,21 @@ def bfs_module():
                     request_path=request.path)
 
 # Модуль TSP - планирование экскурсий
-@route('/tsp')
+@route('/tsp', method=['GET', 'POST'])
 def tsp_module():
     return template('tsp',
                     title='Модуль TSP',
                     year=2026,
                     request_path=request.path)
-
+@route('/tsp/random', method=['POST'])
+def tsp_random():
+    form_data = generate_random_graph()
+    return template('tsp',
+                    title='Модуль TSP',
+                    year=2026,
+                    request_path=request.path,
+                    form=form_data,
+                    errors={})
 # Модуль DFS - анализ блокчейна
 @route('/dfs')
 def dfs_module():

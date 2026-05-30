@@ -29,16 +29,19 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="algorithms\bfs.py">
+    <Compile Include="algorithms\bfs_algorithm.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="algorithms\dfs.py">
+    <Compile Include="algorithms\dfs_algorithm.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="algorithms\tsp.py">
+    <Compile Include="algorithms\tsp_algorithm.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="app.py" />
+    <Compile Include="randoms\tsp_random.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="routes.py" />
     <Compile Include="validators\bfs_validator.py">
       <SubType>Code</SubType>
@@ -52,6 +55,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="algorithms\" />
+    <Folder Include="randoms\" />
+    <Folder Include="static\content\image\" />
     <Folder Include="validators\" />
     <Folder Include="static\" />
     <Folder Include="static\content\" />
@@ -60,6 +65,8 @@
     <Folder Include="views\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="static\content\image\excursion_theory_base.svg" />
+    <Content Include="static\content\image\excursion_theory_path.svg" />
     <Content Include="requirements.txt" />
     <Content Include="static\content\bootstrap.css" />
     <Content Include="static\content\bootstrap.min.css" />
