@@ -1,0 +1,929 @@
+/* ================================================================
+   ПАТЧ к dfs.css — дописать в самый конец файла
+   ================================================================ */
+
+/* ── Глобальные поправки шрифтов ── */
+.container-tx          { font-size: 0.9rem; }
+.page-title            { font-size: 1.9rem; }      /* было 2.5rem — чуть скромнее */
+.subtitle              { font-size: 0.95rem; }
+
+/* Теория: было раздуто, приводим к норме */
+.accordion-content     { font-size: 0.85rem; line-height: 1.65; }
+.accordion-content p   { font-size: 0.85rem; }
+.accordion-content h3  { font-size: 0.95rem; font-weight: 800; margin-top: 1.25rem; }
+.theory-list li,
+.warning-box li        { font-size: 0.85rem; }
+.theory-table th,
+.theory-table td       { font-size: 0.82rem; padding: 8px 12px; }
+.example-block         { font-size: 0.82rem; }
+.example-block code    { font-size: 0.8rem; }
+.flow-step             { font-size: 0.82rem; padding: 6px 11px; }
+.accordion-header      { font-size: 0.95rem; }
+
+/* Форма: было слишком мелким, поднимаем */
+.form-label            { font-size: 0.875rem; }
+.form-label .hint      { font-size: 0.78rem; }
+.form-input,
+.form-textarea         { font-size: 0.875rem; }
+.card h2               { font-size: 1.15rem; }
+.card-header h2        { font-size: 1.1rem; }
+.btn                   { font-size: 0.85rem; }
+.btn--primary          { font-size: 0.95rem; }
+
+/* Результаты */
+.stat-value            { font-size: 1.65rem; }
+.stat-label            { font-size: 0.75rem; }
+.stat-sub              { font-size: 0.78rem; }
+.stat-chip             { font-size: 0.78rem; }
+.stat-chip .val        { font-size: 0.8rem; }
+.tx-table th,
+.tx-table td           { font-size: 0.8rem; padding: 8px 12px; }
+
+/* ── Блок разбора примера ── */
+.example-walkthrough {
+    background: #fff;
+    border: 3px solid var(--slate-200);
+    border-radius: 20px;
+    padding: 0;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.06);
+    overflow: hidden;
+}
+
+.ew-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+    padding: 1.5rem 2rem;
+    border-bottom: 3px solid var(--slate-200);
+}
+
+.ew-header h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0.4rem 0 0.5rem;
+}
+
+.ew-header p {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.ew-badge {
+    display: inline-block;
+    background: #0ea5e9;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 10px;
+    border-radius: 9999px;
+}
+
+.ew-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+}
+
+.ew-section {
+    padding: 1.5rem 1.75rem;
+}
+
+.ew-section:first-child {
+    border-right: 2px solid var(--slate-200);
+}
+
+.ew-section-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--slate-500);
+    margin-bottom: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ew-hint {
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--slate-400);
+    font-size: 0.72rem;
+}
+
+/* Таблица примера */
+.ew-input-block { display: flex; flex-direction: column; gap: 1rem; }
+
+.ew-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid var(--slate-200);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.78rem;
+}
+
+.ew-table thead {
+    background: var(--slate-800);
+    color: #fff;
+}
+
+.ew-table th {
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ew-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--slate-100);
+    color: var(--slate-700);
+    font-size: 0.78rem;
+}
+
+.ew-table tr:last-child td { border-bottom: none; }
+.ew-table tr:nth-child(even) { background: var(--slate-50); }
+
+/* Строки подозрительных транзакций в примере */
+.ew-table tr.ex-row-sus td {
+    background: #fff5f5 !important;
+    color: #b91c1c;
+}
+.ew-table tr.ex-row-sus .amount { color: #991b1b; font-weight: 800; }
+
+/* Блок с текстом для копирования */
+.ew-copy-hint {
+    background: var(--slate-50);
+    border: 2px solid var(--slate-200);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.ew-copy-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--slate-500);
+}
+
+.ew-pre {
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.75rem;
+    color: var(--slate-700);
+    line-height: 1.7;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+.btn-copy {
+    align-self: flex-start;
+    background: var(--slate-800);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+.btn-copy:hover { background: var(--sky-700); }
+
+/* SVG-граф в примере */
+.ew-graph {
+    background: var(--slate-50);
+    border: 2px dashed var(--slate-300);
+    border-radius: 10px;
+    padding: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.ew-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Найденные пути в примере */
+.ew-paths { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.ew-path {
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    border: 2px solid var(--sky-200);
+    background: var(--sky-50);
+}
+
+.ew-path--sus {
+    border-color: var(--danger-border);
+    background: var(--danger-bg);
+}
+
+.ew-path--norm {
+    border-color: var(--success-border);
+    background: var(--success-bg);
+}
+
+.ew-path-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.ew-path-num {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--slate-500);
+    background: var(--slate-100);
+    padding: 2px 7px;
+    border-radius: 5px;
+}
+
+.ew-path-stat {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--slate-500);
+    margin-left: auto;
+}
+
+.ew-path-route {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 0.6rem;
+}
+
+.ew-node {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 2px solid var(--sky-400);
+    border-radius: 50%;
+    width: 52px;
+    height: 52px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--sky-700);
+    text-align: center;
+    padding: 3px;
+    word-break: break-all;
+    flex-shrink: 0;
+}
+
+.ew-node--start {
+    background: var(--slate-900);
+    border-color: var(--slate-900);
+    color: #fff;
+}
+
+.ew-node--sus {
+    border-color: #ef4444;
+    color: #b91c1c;
+    background: #fff5f5;
+}
+
+.ew-arrow {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--sky-500);
+}
+
+.ew-arrow--sus { color: #ef4444; }
+
+.ew-path-explain {
+    font-size: 0.75rem;
+    color: var(--slate-600);
+    line-height: 1.55;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    padding-top: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.ew-path-explain code {
+    font-family: 'Courier New', monospace;
+    background: rgba(0,0,0,0.07);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+}
+
+/* ── Таблица предпросмотра файла ── */
+.card--file-preview {
+    border: 3px solid #bfdbfe;
+    background: #eff6ff;
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.file-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.file-preview-header h2 {
+    font-size: 1rem;
+    font-weight: 800;
+    margin: 0;
+    color: #1d4ed8;
+    border: none;
+    padding: 0;
+}
+
+.file-preview-badge {
+    background: #2563eb;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 9999px;
+}
+
+.file-preview-desc {
+    font-size: 0.8rem;
+    color: var(--slate-500);
+    margin: 0 0 0.85rem;
+    line-height: 1.5;
+}
+
+.tx-table--preview thead         { background: #2563eb; }
+.tx-table--preview thead th      { color: #fff; font-size: 0.72rem; }
+.tx-table--preview tbody tr:nth-child(even) { background: #eff6ff; }
+.tx-table--preview tbody tr:nth-child(odd)  { background: #fff; }
+.tx-table--preview tbody td      { border-bottom: 1px solid #dbeafe; font-size: 0.8rem; }
+
+tr.row-invalid td                { background: #fef2f2 !important; color: #b91c1c; }
+
+.status-ok {
+    display: inline-flex; align-items: center;
+    color: #16a34a; font-size: 0.75rem; font-weight: 800;
+    background: #f0fdf4; border: 1px solid #bbf7d0;
+    padding: 2px 8px; border-radius: 9999px;
+}
+
+.status-err {
+    display: inline-flex; align-items: center;
+    color: #dc2626; font-size: 0.75rem; font-weight: 800;
+    background: #fef2f2; border: 1px solid #fecaca;
+    padding: 2px 8px; border-radius: 9999px;
+}
+
+/* ── Адаптив для блока примера ── */
+@media (max-width: 900px) {
+    .ew-body { grid-template-columns: 1fr; }
+    .ew-section:first-child { border-right: none; border-bottom: 2px solid var(--slate-200); }
+}
+
+/* ================================================================
+   ПАТЧ к dfs.css — дописать в самый конец файла
+   ================================================================ */
+
+/* ── Глобальные поправки шрифтов ── */
+.container-tx {
+    font-size: 0.9rem;
+}
+
+.page-title {
+    font-size: 1.9rem;
+}
+/* было 2.5rem — чуть скромнее */
+.subtitle {
+    font-size: 0.95rem;
+}
+
+/* Теория: было раздуто, приводим к норме */
+.accordion-content {
+    font-size: 0.85rem;
+    line-height: 1.65;
+}
+
+    .accordion-content p {
+        font-size: 0.85rem;
+    }
+
+    .accordion-content h3 {
+        font-size: 0.95rem;
+        font-weight: 800;
+        margin-top: 1.25rem;
+    }
+
+.theory-list li,
+.warning-box li {
+    font-size: 0.85rem;
+}
+
+.theory-table th,
+.theory-table td {
+    font-size: 0.82rem;
+    padding: 8px 12px;
+}
+
+.example-block {
+    font-size: 0.82rem;
+}
+
+    .example-block code {
+        font-size: 0.8rem;
+    }
+
+.flow-step {
+    font-size: 0.82rem;
+    padding: 6px 11px;
+}
+
+.accordion-header {
+    font-size: 0.95rem;
+}
+
+/* Форма: было слишком мелким, поднимаем */
+.form-label {
+    font-size: 0.875rem;
+}
+
+    .form-label .hint {
+        font-size: 0.78rem;
+    }
+
+.form-input,
+.form-textarea {
+    font-size: 0.875rem;
+}
+
+.card h2 {
+    font-size: 1.15rem;
+}
+
+.card-header h2 {
+    font-size: 1.1rem;
+}
+
+.btn {
+    font-size: 0.85rem;
+}
+
+.btn--primary {
+    font-size: 0.95rem;
+}
+
+/* Результаты */
+.stat-value {
+    font-size: 1.65rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+}
+
+.stat-sub {
+    font-size: 0.78rem;
+}
+
+.stat-chip {
+    font-size: 0.78rem;
+}
+
+    .stat-chip .val {
+        font-size: 0.8rem;
+    }
+
+.tx-table th,
+.tx-table td {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+}
+
+/* ── Блок разбора примера ── */
+.example-walkthrough {
+    background: #fff;
+    border: 3px solid var(--slate-200);
+    border-radius: 20px;
+    padding: 0;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.06);
+    overflow: hidden;
+}
+
+.ew-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+    padding: 1.5rem 2rem;
+    border-bottom: 3px solid var(--slate-200);
+}
+
+    .ew-header h2 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0.4rem 0 0.5rem;
+    }
+
+    .ew-header p {
+        font-size: 0.82rem;
+        color: #94a3b8;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+.ew-badge {
+    display: inline-block;
+    background: #0ea5e9;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 10px;
+    border-radius: 9999px;
+}
+
+.ew-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+}
+
+.ew-section {
+    padding: 1.5rem 1.75rem;
+}
+
+    .ew-section:first-child {
+        border-right: 2px solid var(--slate-200);
+    }
+
+.ew-section-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--slate-500);
+    margin-bottom: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ew-hint {
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--slate-400);
+    font-size: 0.72rem;
+}
+
+/* Таблица примера */
+.ew-input-block {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ew-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid var(--slate-200);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.78rem;
+}
+
+    .ew-table thead {
+        background: var(--slate-800);
+        color: #fff;
+    }
+
+    .ew-table th {
+        padding: 8px 10px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .ew-table td {
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--slate-100);
+        color: var(--slate-700);
+        font-size: 0.78rem;
+    }
+
+    .ew-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .ew-table tr:nth-child(even) {
+        background: var(--slate-50);
+    }
+
+    /* Строки подозрительных транзакций в примере */
+    .ew-table tr.ex-row-sus td {
+        background: #fff5f5 !important;
+        color: #b91c1c;
+    }
+
+    .ew-table tr.ex-row-sus .amount {
+        color: #991b1b;
+        font-weight: 800;
+    }
+
+/* Блок с текстом для копирования */
+.ew-copy-hint {
+    background: var(--slate-50);
+    border: 2px solid var(--slate-200);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.ew-copy-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--slate-500);
+}
+
+.ew-pre {
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.75rem;
+    color: var(--slate-700);
+    line-height: 1.7;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+.btn-copy {
+    align-self: flex-start;
+    background: var(--slate-800);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+
+    .btn-copy:hover {
+        background: var(--sky-700);
+    }
+
+/* SVG-граф в примере */
+.ew-graph {
+    background: var(--slate-50);
+    border: 2px dashed var(--slate-300);
+    border-radius: 10px;
+    padding: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.ew-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Найденные пути в примере */
+.ew-paths {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.ew-path {
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    border: 2px solid var(--sky-200);
+    background: var(--sky-50);
+}
+
+.ew-path--sus {
+    border-color: var(--danger-border);
+    background: var(--danger-bg);
+}
+
+.ew-path--norm {
+    border-color: var(--success-border);
+    background: var(--success-bg);
+}
+
+.ew-path-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.ew-path-num {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--slate-500);
+    background: var(--slate-100);
+    padding: 2px 7px;
+    border-radius: 5px;
+}
+
+.ew-path-stat {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--slate-500);
+    margin-left: auto;
+}
+
+.ew-path-route {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 0.6rem;
+}
+
+.ew-node {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 2px solid var(--sky-400);
+    border-radius: 50%;
+    width: 52px;
+    height: 52px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--sky-700);
+    text-align: center;
+    padding: 3px;
+    word-break: break-all;
+    flex-shrink: 0;
+}
+
+.ew-node--start {
+    background: var(--slate-900);
+    border-color: var(--slate-900);
+    color: #fff;
+}
+
+.ew-node--sus {
+    border-color: #ef4444;
+    color: #b91c1c;
+    background: #fff5f5;
+}
+
+.ew-arrow {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--sky-500);
+}
+
+.ew-arrow--sus {
+    color: #ef4444;
+}
+
+.ew-path-explain {
+    font-size: 0.75rem;
+    color: var(--slate-600);
+    line-height: 1.55;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    padding-top: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+    .ew-path-explain code {
+        font-family: 'Courier New', monospace;
+        background: rgba(0,0,0,0.07);
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 0.72rem;
+    }
+
+/* ── Таблица предпросмотра файла ── */
+.card--file-preview {
+    border: 3px solid #bfdbfe;
+    background: #eff6ff;
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.file-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+}
+
+    .file-preview-header h2 {
+        font-size: 1rem;
+        font-weight: 800;
+        margin: 0;
+        color: #1d4ed8;
+        border: none;
+        padding: 0;
+    }
+
+.file-preview-badge {
+    background: #2563eb;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 9999px;
+}
+
+.file-preview-desc {
+    font-size: 0.8rem;
+    color: var(--slate-500);
+    margin: 0 0 0.85rem;
+    line-height: 1.5;
+}
+
+.tx-table--preview thead {
+    background: #2563eb;
+}
+
+    .tx-table--preview thead th {
+        color: #fff;
+        font-size: 0.72rem;
+    }
+
+.tx-table--preview tbody tr:nth-child(even) {
+    background: #eff6ff;
+}
+
+.tx-table--preview tbody tr:nth-child(odd) {
+    background: #fff;
+}
+
+.tx-table--preview tbody td {
+    border-bottom: 1px solid #dbeafe;
+    font-size: 0.8rem;
+}
+
+tr.row-invalid td {
+    background: #fef2f2 !important;
+    color: #b91c1c;
+}
+
+.status-ok {
+    display: inline-flex;
+    align-items: center;
+    color: #16a34a;
+    font-size: 0.75rem;
+    font-weight: 800;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 2px 8px;
+    border-radius: 9999px;
+}
+
+.status-err {
+    display: inline-flex;
+    align-items: center;
+    color: #dc2626;
+    font-size: 0.75rem;
+    font-weight: 800;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: 2px 8px;
+    border-radius: 9999px;
+}
+
+/* ── Адаптив для блока примера ── */
+@media (max-width: 900px) {
+    .ew-body {
+        grid-template-columns: 1fr;
+    }
+
+    .ew-section:first-child {
+        border-right: none;
+        border-bottom: 2px solid var(--slate-200);
+    }
+}

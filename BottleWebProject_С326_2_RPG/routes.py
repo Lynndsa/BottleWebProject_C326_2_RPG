@@ -42,12 +42,53 @@ def tsp_random():
                     form=form_data,
                     errors={})
 # Модуль DFS - анализ блокчейна
-@route('/dfs')
+
+
+@route('/dfs', method=['GET', 'POST'])
 def dfs_module():
-    return template('dfs',
-                    title='Модуль DFS',
-                    year=2026,
-                    request_path=request.path)
+    defaults = dict(
+        title='Модуль DFS',
+        year=2026,
+        request_path=request.path,
+        threshold=4,
+        tx_count=10,
+        wallet_count=6,
+        transactions='',
+        input_mode='manual',
+        errors={},
+        error=None,
+        graph_svg=None,
+        result=None,
+    )
+
+    if request.method == 'POST':
+        mode = request.forms.get('input_mode', 'manual')
+        defaults['input_mode']    = mode
+        defaults['threshold']     = request.forms.get('threshold', 4)
+        defaults['tx_count']      = request.forms.get('tx_count', 10)
+        defaults['wallet_count']  = request.forms.get('wallet_count', 6)
+
+        errors = validate_dfs_form(request.forms, request.files)
+
+        if errors:
+            defaults['errors'] = errors
+            defaults['transactions'] = request.forms.get('transactions', '')
+            return template('dfs', **defaults)
+
+        if mode == 'random':
+            raw = generate_transactions(
+                int(request.forms.get('tx_count', 10)),
+                int(request.forms.get('wallet_count', 6))
+            )
+        elif mode == 'file':
+            raw = read_transactions_from_file(request.files.get('tx_file'))
+        else:
+            raw = request.forms.get('transactions', '')
+
+        defaults['transactions'] = raw
+        defaults['result'] = run_dfs(raw, int(request.forms.get('threshold', 4)))
+
+    return template('dfs', **defaults)
 
 # Статика
 @route('/static/<filepath:path>')
