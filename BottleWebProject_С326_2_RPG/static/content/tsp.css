@@ -5,7 +5,7 @@
 /* Кастомные алерты */
 .tsp-alert-danger {
     border-radius: 12px;
-    font-weight: 700;
+    font-weight: 1700;
     margin-bottom: 25px;
     padding: 15px;
 }
@@ -220,7 +220,7 @@
         padding: 12px 20px;
         background: transparent;
         cursor: pointer;
-        font-size: 19px;
+        font-size: 14px;
     }
 
 /* Контент внутри открытого спойлера */
@@ -229,19 +229,19 @@
     border-radius: 0 0 12px 12px;
     padding: 20px 25px;
     color: #0f172a;
-    font-size: 17.5px;
+    font-size: 13.5px;
     line-height: 1.55;
 }
 
     .theory-content-white h3 {
-        font-size: 19px;
+        font-size: 16px;
         font-weight: 700;
         margin-top: 15px;
         margin-bottom: 10px;
     }
 
     .theory-content-white h4 {
-        font-size: 17.5px;
+        font-size: 14.5px;
         font-weight: 700;
         margin-top: 15px;
         margin-bottom: 8px;
@@ -254,4 +254,46 @@
 
     .theory-content-white li {
         margin-bottom: 8px;
+    }
+
+/* ====== Таблица рёбер из файла ====== */
+.edges-table-wrapper {
+    margin-top: 25px;
+}
+
+    .edges-table-wrapper h2 {
+        font-size: 20px;
+        color: #0f172a;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+.edges-file-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+    .edges-file-table thead {
+        background: #f1f5f9;
+    }
+
+    .edges-file-table th,
+    .edges-file-table td {
+        border: 1px solid #cbd5e1;
+        padding: 10px 16px;
+        text-align: center;
+    }
+
+    .edges-file-table th {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .edges-file-table tbody tr:nth-child(even) {
+        background: #f8fafc;
+    }
+
+    .edges-file-table tbody tr:hover {
+        background: #e0f2fe;
     }
