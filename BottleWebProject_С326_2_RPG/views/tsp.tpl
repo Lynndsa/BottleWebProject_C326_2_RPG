@@ -6,10 +6,10 @@
 <div class="container-tsp">
 
 % _form         = defined('form')        and form        or {}
-% _errors      = defined('errors')      and errors      or {}
-% _result      = defined('result')      and result      or None
-% _svg         = defined('svg_html')    and svg_html    or None
-% _edges_table = defined('edges_table') and edges_table or []
+% _errors       = defined('errors')      and errors      or {}
+% _result       = defined('result')      and result      or None
+% _svg          = defined('svg_html')    and svg_html    or None
+% _edges_table  = defined('edges_table') and edges_table or []
 
 % val_n     = _form.get('n',     '')
 % val_m     = _form.get('m',     '')
@@ -27,12 +27,12 @@
   <p class="subtitle">Оптимальный маршрут туриста — задача коммивояжёра (TSP)</p>
 
   % if _errors.get('global'):
-    <div class="alert alert-danger tsp-alert-danger">
+    <div class="alert alert-danger tsp-alert-danger" style="margin-bottom: 20px;">
       ⚠️ {{_errors['global']}}
     </div>
   % end
 
-  <div class="card-panel theory-card-wrapper">
+  <div class="card-panel theory-card-wrapper" style="margin-bottom: 25px;">
     <details class="theory-accordion-clean" {{'open' if not _result else ''}}>
       <summary>📖 Справка: Теория и пошаговый разбор алгоритма TSP</summary>
       <div class="theory-content-white">
@@ -103,11 +103,13 @@
     </details>
   </div>
 
-  <div class="row">
+  <!-- ===== Основной контент: две колонки ===== -->
+  <div class="row" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch;">
 
-    <div class="col-lg-5 col-md-12 mb-4">
-      <div class="card-panel" style="height: 100%;">
-        <h2>Параметры графа</h2>
+    <!-- Левая колонка: форма параметров -->
+    <div style="flex: 1 1 340px; min-width: 340px;">
+      <div class="card-panel" style="margin-bottom: 0; height: auto;">
+        <h2 style="margin-top: 0;">Параметры графа</h2>
 
         <form action="/tsp" method="POST" enctype="multipart/form-data" id="tsp-form">
 
@@ -115,47 +117,51 @@
                  accept=".txt" style="display:none"
                  onchange="document.getElementById('tsp-form').submit()">
 
-          <div class="preset-buttons">
-            <button type="submit" formaction="/tsp/random" class="btn btn-light btn-sm btn-preset">
+          <!-- Кнопки пресетов в одну строку -->
+          <div class="preset-buttons" style="display: flex; gap: 10px; margin-bottom: 18px;">
+            <button type="submit" formaction="/tsp/random" class="btn btn-light btn-sm btn-preset" style="flex: 1;">
               🎲 Случайный
             </button>
-
-            <button type="button" class="btn btn-light btn-sm btn-preset"
+            <button type="button" class="btn btn-light btn-sm btn-preset" style="flex: 1;"
                     onclick="document.getElementById('txt_file_input').click()">
               📁 Загрузить из .txt
             </button>
           </div>
 
-          <div class="inputs-inline-row">
-            <div class="form-group form-group-flex">
-              <label class="form-label-custom">Вершины N <small>&le; 50</small></label>
+          <!-- Три поля в одну строку -->
+          <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+            <div style="flex: 1; min-width: 0;">
+              <label class="form-label-custom">Вершины N</label>
               <input type="number" name="n" class="form-control form-control-custom {{cls_n}}"
                      value="{{val_n}}" placeholder="10" min="1" max="50">
             </div>
-            <div class="form-group form-group-flex">
-              <label class="form-label-custom">Объекты M <small>&le; 8</small></label>
+            <div style="flex: 1; min-width: 0;">
+              <label class="form-label-custom">Объекты M</label>
               <input type="number" name="m" class="form-control form-control-custom {{cls_m}}"
                      value="{{val_m}}" placeholder="4" min="1" max="8">
             </div>
-            <div class="form-group form-group-flex">
+            <div style="flex: 1; min-width: 0;">
               <label class="form-label-custom">Отель K</label>
               <input type="number" name="k" class="form-control form-control-custom {{cls_k}}"
                      value="{{val_k}}" placeholder="1">
             </div>
           </div>
 
-          <div class="form-group mb-20">
-            <label class="form-label-custom">Рёбра графа <small class="text-muted-dark">в строку: u v w</small></label>
+          <!-- Рёбра -->
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label-custom">Рёбра графа <small class="text-muted-dark">строками: u v w</small></label>
             <textarea name="edges" class="form-control form-control-custom {{cls_edges}}"
-                      rows="5" placeholder="1 2 5&#10;2 3 3&#10;1 3 10">{{val_edges}}</textarea>
+                      rows="5" placeholder="1 2 5&#10;2 3 3">{{val_edges}}</textarea>
           </div>
 
-          <div class="form-group mb-25">
+          <!-- Достопримечательности -->
+          <div class="form-group" style="margin-bottom: 20px;">
             <label class="form-label-custom">Достопримечательности <small class="text-muted-dark">через пробел</small></label>
             <input type="text" name="sites" class="form-control form-control-custom {{cls_sites}}"
                    value="{{val_sites}}" placeholder="2 3 4">
           </div>
 
+          <!-- Кнопка -->
           <button type="submit" class="btn btn-primary w-100 btn-submit-tsp">
             Найти оптимальный маршрут
           </button>
@@ -164,12 +170,13 @@
       </div>
     </div>
 
-    <div class="col-lg-7 col-md-12 mb-4">
-      <div class="card-panel edges-table-wrapper" style="height: 100%; margin-top: 0;">
-        <h2>Рёбра графа</h2>
-        
+    <!-- Правая колонка: таблица рёбер -->
+    <div style="flex: 1 1 340px; min-width: 340px;">
+      <div class="card-panel edges-table-wrapper" style="margin-bottom: 0;">
+        <h2 style="margin-top: 0;">Рёбра графа</h2>
+
         % if _edges_table or val_edges:
-          <div class="table-responsive" style="max-height: 485px; overflow-y: auto;">
+          <div class="table-responsive" style="max-height: 440px; overflow-y: auto;">
             <table class="table table-bordered edges-file-table mb-0">
               <thead>
                 <tr>
@@ -206,7 +213,7 @@
             </table>
           </div>
         % else:
-          <p class="placeholder-text text-muted" style="text-align: center; padding-top: 40px;">
+          <p class="placeholder-text" style="text-align: center; padding-top: 80px;">
             Список рёбер пуст. Сгенерируйте случайный граф или загрузите .txt файл.
           </p>
         % end
@@ -215,28 +222,27 @@
 
   </div>
 
-  <div class="row">
-    <div class="col-12 mb-4">
-      <div class="card-panel">
-        <h2>Визуализация структуры графа и путей</h2>
+  <!-- ===== Визуализация ===== -->
+  <div style="margin-top: 20px;">
+    <div class="card-panel">
+      <h2 style="margin-top: 0;">Визуализация структуры графа и путей</h2>
 
-        <div class="visual-container">
-          % if _svg:
-            <div class="graph-svg-output" style="width: 100%; text-align: center;">{{!_svg}}</div>
-          % elif _result:
-            <div class="result-text-output" style="text-align: center; padding: 20px;">
-              <h4>Результат расчёта:</h4>
-              <p class="result-p"><strong>Оптимальный путь:</strong>
-                 <span class="text-highlight-blue" style="font-size: 1.25rem; color: #0d6efd;">{{_result.get('path_str', '')}}</span></p>
-              <p class="result-p"><strong>Минимальное время:</strong>
-                 <span class="text-highlight-green" style="font-size: 1.25rem; color: #198754;">{{_result.get('min_weight', '')}}</span> ед.</p>
-            </div>
-          % else:
-            <p class="placeholder-text" style="text-align: center; color: #6c757d; padding: 40px 0;">
-              Заполните поля параметров и рёбер графа для генерации визуальной схемы
-            </p>
-          % end
-        </div>
+      <div class="visual-container" style="min-height: 250px;">
+        % if _svg:
+          <div class="graph-svg-output">{{!_svg}}</div>
+        % elif _result:
+          <div class="result-text-output">
+            <h4>Результат расчёта:</h4>
+            <p class="result-p"><strong>Оптимальный путь:</strong>
+               <span class="text-highlight-blue" style="font-size: 1.25rem;">{{_result.get('path_str', '')}}</span></p>
+            <p class="result-p"><strong>Минимальное время:</strong>
+               <span class="text-highlight-green" style="font-size: 1.25rem;">{{_result.get('min_weight', '')}}</span> ед.</p>
+          </div>
+        % else:
+          <p class="placeholder-text" style="padding: 60px 0;">
+            Заполните поля параметров и рёбер графа для генерации визуальной схемы
+          </p>
+        % end
       </div>
     </div>
   </div>
