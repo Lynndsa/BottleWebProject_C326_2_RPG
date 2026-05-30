@@ -10,7 +10,15 @@ def favicon():
 # routes.py
 from bottle import route, run, template, static_file, request
 from randoms.tsp_random import generate_random_graph
+# -*- coding: utf-8 -*-
+from bottle import Bottle, route, view, static_file, run, template, request
+from datetime import datetime
+
 # Главная страница с описанием задач
+@route('/favicon.ico')
+def favicon():
+    return static_file('favicon.ico', root='./static')
+  
 @route('/')
 def index():
     return template('index',
