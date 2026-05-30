@@ -1,116 +1,148 @@
 ﻿# -*- coding: utf-8 -*-
-from bottle import Bottle, route, view, static_file
-from datetime import datetime
-
-
-@route('/favicon.ico')
-def favicon():
-    return static_file('favicon.ico', root='./static')
-
-# routes.py
 from bottle import route, run, template, static_file, request
 from randoms.tsp_random import generate_random_graph
-# -*- coding: utf-8 -*-
-from bottle import Bottle, route, view, static_file, run, template, request
-from datetime import datetime
+from validators.tsp_validator import parse_input, parse_txt_file
+from visual.tsp_visual import build_svg
+from algorithms.tsp_algorithm import solve_tsp
 
-# Главная страница с описанием задач
 @route('/favicon.ico')
 def favicon():
     return static_file('favicon.ico', root='./static')
-  
+
 @route('/')
 def index():
-    return template('index',
-                    title='Описание задач',
-                    year=2026,
-                    request_path=request.path)
+    return template('index', title='Описание задач', year=2026, request_path=request.path)
 
-# Модуль BFS - распространение вируса
 @route('/bfs')
 def bfs_module():
-    return template('bfs',
-                    title='Модуль BFS',
-                    year=2026,
-                    request_path=request.path)
+    return template('bfs', title='Модуль BFS', year=2026, request_path=request.path)
 
-# Модуль TSP - планирование экскурсий
-@route('/tsp', method=['GET', 'POST'])
-def tsp_module():
-    return template('tsp',
-                    title='Модуль TSP',
-                    year=2026,
-                    request_path=request.path)
-@route('/tsp/random', method=['POST'])
+# ================================================================
+#  Модуль TSP
+# ================================================================
+
+def _tsp_defaults():
+    return dict(title='Модуль TSP', year=2026, request_path=request.path)
+
+@route('/tsp', method='GET')
+def tsp_get():
+    return template('tsp', **_tsp_defaults())
+
+
+@route('/tsp/random', method='POST')
 def tsp_random():
-    form_data = generate_random_graph()
-    return template('tsp',
-                    title='Модуль TSP',
-                    year=2026,
-                    request_path=request.path,
-                    form=form_data,
-                    errors={})
-# Модуль DFS - анализ блокчейна
+    raw = generate_random_graph()
+    # Конвертируем edges строку → u_i / v_i / w_i для таблицы
+    form = {
+        'n':     raw['n'],
+        'm':     raw['m'],
+        'k':     raw['k'],
+        'sites': raw['sites'],
+    }
+    for i, line in enumerate(raw['edges'].strip().splitlines(), 1):
+        parts = line.strip().split()
+        if len(parts) == 3:
+            form[f'u_{i}'] = parts[0]
+            form[f'v_{i}'] = parts[1]
+            form[f'w_{i}'] = parts[2]
+
+    return template('tsp', **_tsp_defaults(), form=form, errors={})
 
 
+@route('/tsp', method='POST')
+def tsp_post():
+
+    # --- Загрузка из .txt ---
+    upload = request.files.get('txt_file')
+    if upload and upload.filename:
+        try:
+            content = upload.file.read().decode('utf-8')
+        except Exception:
+            return template('tsp', **_tsp_defaults(),
+                            errors={'global': 'Не удалось прочитать файл'})
+
+        form_data, errors = parse_txt_file(content)
+
+        # Конвертируем edges строку → u_i / v_i / w_i
+        form = {k: v for k, v in form_data.items() if k != 'edges'}
+        for i, line in enumerate(form_data.get('edges', '').strip().splitlines(), 1):
+            parts = line.strip().split()
+            if len(parts) == 3:
+                form[f'u_{i}'] = parts[0]
+                form[f'v_{i}'] = parts[1]
+                form[f'w_{i}'] = parts[2]
+
+        return template('tsp', **_tsp_defaults(), form=form, errors=errors)
+
+    # --- Сборка рёбер из таблицы u_i / v_i / w_i → edges_text ---
+    n_raw = request.forms.get('n', '').strip()
+    edges_lines = []
+    try:
+        n_int = int(n_raw)
+        for i in range(1, n_int + 1):
+            u = request.forms.get(f'u_{i}', '').strip()
+            v = request.forms.get(f'v_{i}', '').strip()
+            w = request.forms.get(f'w_{i}', '').strip()
+            if u and v and w:
+                edges_lines.append(f'{u} {v} {w}')
+    except (ValueError, TypeError):
+        pass
+
+    edges_text = '\n'.join(edges_lines)
+
+    n      = n_raw
+    m      = request.forms.get('m',     '').strip()
+    k      = request.forms.get('k',     '').strip()
+    sites  = request.forms.get('sites', '').strip()
+
+    # Собираем form для восстановления таблицы при ошибке
+    form = {'n': n, 'm': m, 'k': k, 'sites': sites}
+    try:
+        for i in range(1, int(n) + 1):
+            form[f'u_{i}'] = request.forms.get(f'u_{i}', '')
+            form[f'v_{i}'] = request.forms.get(f'v_{i}', '')
+            form[f'w_{i}'] = request.forms.get(f'w_{i}', '')
+    except (ValueError, TypeError):
+        pass
+
+    # --- Валидация ---
+    graph, hotel, targets, errors = parse_input(n, edges_text, k, sites)
+
+    if errors:
+        return template('tsp', **_tsp_defaults(), form=form, errors=errors)
+
+    # --- Алгоритм ---
+    best_path, min_dist = solve_tsp(graph, hotel, targets)
+
+    if best_path is None:
+        return template('tsp', **_tsp_defaults(), form=form,
+                        errors={'global': 'Маршрут невозможен: граф несвязный или вершины недостижимы'})
+
+    # --- Визуализация ---
+    svg_html = build_svg(graph, best_path=best_path, hotel=hotel)
+
+    result = {
+        'path_str':   ' → '.join(best_path),
+        'min_weight': min_dist,
+    }
+
+    return template('tsp', **_tsp_defaults(),
+                    form=form, errors={},
+                    result=result, svg_html=svg_html)
+
+
+# ================================================================
 @route('/dfs', method=['GET', 'POST'])
 def dfs_module():
-    defaults = dict(
-        title='Модуль DFS',
-        year=2026,
-        request_path=request.path,
-        threshold=4,
-        tx_count=10,
-        wallet_count=6,
-        transactions='',
-        input_mode='manual',
-        errors={},
-        error=None,
-        graph_svg=None,
-        result=None,
-    )
+    return template('dfs', title='Модуль DFS', year=2026, request_path=request.path)
 
-    if request.method == 'POST':
-        mode = request.forms.get('input_mode', 'manual')
-        defaults['input_mode']    = mode
-        defaults['threshold']     = request.forms.get('threshold', 4)
-        defaults['tx_count']      = request.forms.get('tx_count', 10)
-        defaults['wallet_count']  = request.forms.get('wallet_count', 6)
-
-        errors = validate_dfs_form(request.forms, request.files)
-
-        if errors:
-            defaults['errors'] = errors
-            defaults['transactions'] = request.forms.get('transactions', '')
-            return template('dfs', **defaults)
-
-        if mode == 'random':
-            raw = generate_transactions(
-                int(request.forms.get('tx_count', 10)),
-                int(request.forms.get('wallet_count', 6))
-            )
-        elif mode == 'file':
-            raw = read_transactions_from_file(request.files.get('tx_file'))
-        else:
-            raw = request.forms.get('transactions', '')
-
-        defaults['transactions'] = raw
-        defaults['result'] = run_dfs(raw, int(request.forms.get('threshold', 4)))
-
-    return template('dfs', **defaults)
-
-# Статика
 @route('/static/<filepath:path>')
 def server_static(filepath):
     return static_file(filepath, root='./static')
 
-# Страница "Об авторах"
 @route('/about')
 def about():
-    return template('about',
-                    title='Об авторах',
-                    year=2026,
-                    request_path=request.path)
+    return template('about', title='Об авторах', year=2026, request_path=request.path)
 
 if __name__ == '__main__':
     run(host='localhost', port=8080, debug=True, reloader=True)
