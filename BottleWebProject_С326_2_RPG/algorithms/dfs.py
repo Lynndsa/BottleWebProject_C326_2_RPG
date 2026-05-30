@@ -2,7 +2,7 @@
 import random
 
 def generate_transactions(tx_count, wallet_count):
-    """Генерация случайных транзакций на сервере."""
+    """Р“РµРЅРµСЂР°С†РёСЏ СЃР»СѓС‡Р°Р№РЅС‹С… С‚СЂР°РЅР·Р°РєС†РёР№ РЅР° СЃРµСЂРІРµСЂРµ."""
     hex_chars = '0123456789ABCDEF'
     wallets = [''.join(random.choices(hex_chars, k=6)) for _ in range(wallet_count)]
     ts = 1_700_000_000
@@ -15,13 +15,13 @@ def generate_transactions(tx_count, wallet_count):
     return '\n'.join(lines)
 
 def read_transactions_from_file(file_storage):
-    """Читает транзакции из загруженного файла."""
+    """Р§РёС‚Р°РµС‚ С‚СЂР°РЅР·Р°РєС†РёРё РёР· Р·Р°РіСЂСѓР¶РµРЅРЅРѕРіРѕ С„Р°Р№Р»Р°."""
     return file_storage.file.read().decode('utf-8', errors='ignore')
 
 def run_dfs(raw_transactions, threshold):
     """
-    Основной алгоритм DFS.
-    Сюда потом вписывается реализация.
-    Пока возвращает заглушку.
+    РћСЃРЅРѕРІРЅРѕР№ Р°Р»РіРѕСЂРёС‚Рј DFS.
+    РЎСЋРґР° РїРѕС‚РѕРј РІРїРёСЃС‹РІР°РµС‚СЃСЏ СЂРµР°Р»РёР·Р°С†РёСЏ.
+    РџРѕРєР° РІРѕР·РІСЂР°С‰Р°РµС‚ Р·Р°РіР»СѓС€РєСѓ.
     """
     pass
