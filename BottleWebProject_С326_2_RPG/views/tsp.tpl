@@ -32,7 +32,8 @@
     </div>
   % end
 
-  <div class="card-panel theory-card-wrapper" style="margin-bottom: 25px;">
+
+<div class="card-panel theory-card-wrapper" style="margin-bottom: 25px;">
     <details class="theory-accordion-clean" {{'open' if not _result else ''}}>
       <summary>📖 Справка: Теория и пошаговый разбор алгоритма TSP</summary>
       <div class="theory-content-white">
@@ -41,72 +42,83 @@
         <p>Для поиска оптимального туристического маршрута (задачи коммивояжёра) в условиях неполного графа используется последовательный двухэтапный подход. Он гарантирует нахождение точного и кратчайшего циклического пути, даже если между отелем и ключевыми объектами нет прямых дорог.</p>
 
         <ol>
-          <li><strong>Этап 1: Алгоритм Дейкстры</strong><br>
-          Используется для расчёта кратчайших путей от одной вершины графа до всех остальных. С помощью приоритетной очереди алгоритм быстро находит скрытые оптимальные маршруты в обход промежуточных узлов. Этот шаг выполняется для отеля и каждой достопримечательности отдельно, чтобы построить <em>матрицу расстояний</em> между ними.</li>
-
-          <li><strong>Этап 2: Полный перебор перестановок (Brute Force)</strong><br>
-          Алгоритм берёт список из всех выбранных достопримечательностей и генерирует абсолютно все возможные последовательности их посещения. Общее число таких вариантов равно факториалу количества объектов (M!). Для каждого варианта вычисляется длина полного пути с обязательным возвратом в отель, после чего выбирается маршрут с минимальным временем.</li>
+          <li><strong>Этап 1: Алгоритм Дейкстры</strong> — расчёт кратчайших путей от одной вершины графа до всех остальных с помощью приоритетной очереди для построения матрицы расстояний.</li>
+          <li><strong>Этап 2: Полный перебор перестановок (Brute Force)</strong> — генерация всех возможных последовательностей посещения объектов (M!) с возвратом в отель и выбором минимума.</li>
         </ol>
 
-        <p>Временная сложность перебора составляет <strong>O(M!)</strong>. При ограничении количества объектов M &le; 8 максимальное число комбинаций составляет всего 8! = 40 320 вариантов, что обрабатывается алгоритмом практически мгновенно.</p>
+        <p>Временная сложность перебора составляет O(M!). При ограничении M ≤ 8 максимальное число комбинаций составляет 8! = 40 320, что обрабатывается алгоритмом практически мгновенно.</p>
 
-        <hr>
+        <hr style="margin: 20px 0;">
 
         <h3>Пошаговый разбор на конкретном примере</h3>
-        <p>Исходные данные: <strong>Отель 'A'</strong>, выбранные достопримечательности для посещения: <strong>['B', 'E', 'F']</strong>.</p>
+        <p class="mb-4">Исходные данные: <strong>Отель 'A'</strong>, выбранные достопримечательности для посещения: <strong>['B', 'E', 'F']</strong>.</p>
 
-        <div class="theory-img-wrapper">
-          <img src="/static/content/image/excursion_theory_base.svg" alt="Схема исходного графа" class="theory-img">
-          <p class="theory-caption"><em>Рисунок 1. Исходная структура графа. Темный узел — отель, голубые — объекты.</em></p>
+        <div class="row align-items-center mb-4">
+          <div class="col-md-6">
+            <h4>Шаг 1: Построение матрицы кратчайших расстояний</h4>
+            <p>Сначала алгоритм Дейкстры вычисляет реальные минимальные расстояния между ключевыми точками. Результат заносится в таблицу:</p>
+            
+            <table class="table table-bordered math-table math-table-custom mb-0" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Ключевой узел</th>
+                  <th>До A (Отель)</th>
+                  <th>До B</th>
+                  <th>До E</th>
+                  <th>До F</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>A (Отель)</strong></td><td>0</td><td>4</td><td>7</td><td>10</td></tr>
+                <tr><td><strong>B (Объект)</strong></td><td>4</td><td>0</td><td>3</td><td>6</td></tr>
+                <tr><td><strong>E (Объект)</strong></td><td>7</td><td>3</td><td>0</td><td>5</td></tr>
+                <tr><td><strong>F (Объект)</strong></td><td>10</td><td>6</td><td>5</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="theory-img-wrapper" style="margin: 0; text-align: center;">
+              <img src="/static/content/image/excursion_theory_base.svg" alt="Схема исходного графа" class="theory-img" style="max-height: 220px;">
+              <p class="theory-caption" style="margin-bottom: 0;"><em>Рисунок 1. Исходная структура графа. Темный узел — отель, голубые — объекты.</em></p>
+            </div>
+          </div>
         </div>
 
-        <h4>Шаг 1: Построение матрицы кратчайших расстояний</h4>
-        <p>Сначала алгоритм Дейкстры вычисляет реальные минимальные расстояния между ключевыми точками. Результат заносится в таблицу:</p>
+        <hr style="margin: 20px 0;">
 
-        <table class="table table-bordered math-table math-table-custom">
-          <thead>
-            <tr>
-              <th>Ключевой узел</th>
-              <th>До A (Отель)</th>
-              <th>До B</th>
-              <th>До E</th>
-              <th>До F</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td><strong>A (Отель)</strong></td><td>0</td><td>4</td><td>7</td><td>10</td></tr>
-            <tr><td><strong>B (Объект)</strong></td><td>4</td><td>0</td><td>3</td><td>6</td></tr>
-            <tr><td><strong>E (Объект)</strong></td><td>7</td><td>3</td><td>0</td><td>5</td></tr>
-            <tr><td><strong>F (Объект)</strong></td><td>10</td><td>6</td><td>5</td><td>0</td></tr>
-          </tbody>
-        </table>
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <h4>Шаг 2: Расчёт длин всех возможных замкнутых маршрутов</h4>
+            <ul style="margin-bottom: 15px;">
+              <li><code>A &rarr; B &rarr; E &rarr; F &rarr; A</code> = 4 + 3 + 5 + 10 = <strong>22</strong> (Оптимально)</li>
+              <li><code>A &rarr; B &rarr; F &rarr; E &rarr; A</code> = 4 + 6 + 5 + 7 = <strong>22</strong> (Оптимально)</li>
+              <li><code>A &rarr; E &rarr; B &rarr; F &rarr; A</code> = 7 + 3 + 6 + 10 = 26</li>
+              <li><code>A &rarr; E &rarr; F &rarr; B &rarr; A</code> = 7 + 5 + 6 + 4 = <strong>22</strong> (Оптимально)</li>
+              <li><code>A &rarr; F &rarr; B &rarr; E &rarr; A</code> = 10 + 6 + 3 + 7 = 26</li>
+              <li><code>A &rarr; F &rarr; E &rarr; B &rarr; A</code> = 10 + 5 + 3 + 4 = <strong>22</strong> (Оптимально)</li>
+            </ul>
 
-        <h4>Шаг 2: Расчёт длин всех возможных замкнутых маршрутов</h4>
-        <ul>
-          <li><code>A &rarr; B &rarr; E &rarr; F &rarr; A</code> = 4 + 3 + 5 + 10 = <strong>22</strong> (Оптимально)</li>
-          <li><code>A &rarr; B &rarr; F &rarr; E &rarr; A</code> = 4 + 6 + 5 + 7 = <strong>22</strong> (Оптимально)</li>
-          <li><code>A &rarr; E &rarr; B &rarr; F &rarr; A</code> = 7 + 3 + 6 + 10 = 26</li>
-          <li><code>A &rarr; E &rarr; F &rarr; B &rarr; A</code> = 7 + 5 + 6 + 4 = <strong>22</strong> (Оптимально)</li>
-          <li><code>A &rarr; F &rarr; B &rarr; E &rarr; A</code> = 10 + 6 + 3 + 7 = 26</li>
-          <li><code>A &rarr; F &rarr; E &rarr; B &rarr; A</code> = 10 + 5 + 3 + 4 = <strong>22</strong> (Оптимально)</li>
-        </ul>
-
-        <h4>Итоговый результат</h4>
-        <div class="theory-img-wrapper">
-          <img src="/static/content/image/excursion_theory_path.svg" alt="Визуализация оптимального маршрута" class="theory-img">
-          <p class="theory-caption"><em>Рисунок 2. Оптимальный замкнутый маршрут: A → B → E → F → A.</em></p>
+            <h4>Итоговый результат</h4>
+            <p class="mb-0">
+              <strong>Оптимальный маршрут:</strong> A &rarr; B &rarr; E &rarr; F &rarr; A<br>
+              <strong>Минимальное время:</strong> 22 ед.
+            </p>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="theory-img-wrapper" style="margin: 0; text-align: center;">
+              <img src="/static/content/image/excursion_theory_path.svg" alt="Визуализация оптимального маршрута" class="theory-img" style="max-height: 220px;">
+              <p class="theory-caption" style="margin-bottom: 0;"><em>Рисунок 2. Оптимальный замкнутый маршрут: A → B → E → F → A.</em></p>
+            </div>
+          </div>
         </div>
-        <p><strong>Оптимальный маршрут:</strong> A &rarr; B &rarr; E &rarr; F &rarr; A<br>
-        <strong>Минимальное время:</strong> 22 ед.</p>
 
       </div>
     </details>
   </div>
-
-  <!-- ===== Основной контент: две колонки ===== -->
   <div class="row" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch;">
 
-    <!-- Левая колонка: форма параметров -->
     <div style="flex: 1 1 340px; min-width: 340px;">
       <div class="card-panel" style="margin-bottom: 0; height: auto;">
         <h2 style="margin-top: 0;">Параметры графа</h2>
@@ -117,7 +129,6 @@
                  accept=".txt" style="display:none"
                  onchange="document.getElementById('tsp-form').submit()">
 
-          <!-- Кнопки пресетов в одну строку -->
           <div class="preset-buttons" style="display: flex; gap: 10px; margin-bottom: 18px;">
             <button type="submit" formaction="/tsp/random" class="btn btn-light btn-sm btn-preset" style="flex: 1;">
               🎲 Случайный
@@ -128,7 +139,7 @@
             </button>
           </div>
 
-          <!-- Три поля в одну строку -->
+  
           <div style="display: flex; gap: 10px; margin-bottom: 16px;">
             <div style="flex: 1; min-width: 0;">
               <label class="form-label-custom">Вершины N</label>
@@ -147,21 +158,12 @@
             </div>
           </div>
 
-          <!-- Рёбра -->
-          <div class="form-group" style="margin-bottom: 16px;">
-            <label class="form-label-custom">Рёбра графа <small class="text-muted-dark">строками: u v w</small></label>
-            <textarea name="edges" class="form-control form-control-custom {{cls_edges}}"
-                      rows="5" placeholder="1 2 5&#10;2 3 3">{{val_edges}}</textarea>
-          </div>
-
-          <!-- Достопримечательности -->
           <div class="form-group" style="margin-bottom: 20px;">
             <label class="form-label-custom">Достопримечательности <small class="text-muted-dark">через пробел</small></label>
             <input type="text" name="sites" class="form-control form-control-custom {{cls_sites}}"
                    value="{{val_sites}}" placeholder="2 3 4">
           </div>
 
-          <!-- Кнопка -->
           <button type="submit" class="btn btn-primary w-100 btn-submit-tsp">
             Найти оптимальный маршрут
           </button>
@@ -170,55 +172,51 @@
       </div>
     </div>
 
-    <!-- Правая колонка: таблица рёбер -->
-    <div style="flex: 1 1 340px; min-width: 340px;">
-      <div class="card-panel edges-table-wrapper" style="margin-bottom: 0;">
-        <h2 style="margin-top: 0;">Рёбра графа</h2>
 
-        % if _edges_table or val_edges:
-          <div class="table-responsive" style="max-height: 440px; overflow-y: auto;">
-            <table class="table table-bordered edges-file-table mb-0">
-              <thead>
+       <div class="card-panel edges-table-wrapper mb-20">
+      <h2>Список рёбер графа</h2>
+      
+      <div class="table-responsive" id="matrix-wrapper">
+        % if val_n and val_n.isdigit() and int(val_n) > 0:
+          % n_edges = int(val_n)
+          <table class="edges-file-table" id="matrix-table">
+            <thead>
+              <tr>
+                <th style="width: 10%;">#</th>
+                <th>Вершина u (Откуда)</th>
+                <th>Вершина v (Куда)</th>
+                <th>Вес w (Расстояние)</th>
+              </tr>
+            </thead>
+            <tbody>
+              % for i in range(1, n_edges + 1):
                 <tr>
-                  <th>№</th>
-                  <th>Вершина U</th>
-                  <th>Вершина V</th>
-                  <th>Вес W</th>
+                  <td><strong>{{i}}</strong></td>
+                  <td>
+                    <input type="text" name="u_{{i}}" class="form-control-custom" value="{{_form.get(f'u_{i}', '')}}" " required>
+                  </td>
+                  <td>
+                    <input type="text" name="v_{{i}}" class="form-control-custom" value="{{_form.get(f'v_{i}', '')}}"  required>
+                  </td>
+                  <td>
+                    <input type="number" name="w_{{i}}" class="form-control-custom" value="{{_form.get(f'w_{i}', '')}}" min="1" required>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                % if _edges_table:
-                  % for row in _edges_table:
-                  <tr>
-                    <td>{{row['num']}}</td>
-                    <td>{{row['u']}}</td>
-                    <td>{{row['v']}}</td>
-                    <td>{{row['w']}}</td>
-                  </tr>
-                  % end
-                % else:
-                  % for i, line in enumerate(val_edges.strip().splitlines(), 1):
-                    % parts = line.strip().split()
-                    % if len(parts) == 3:
-                  <tr>
-                    <td>{{i}}</td>
-                    <td>{{parts[0]}}</td>
-                    <td>{{parts[1]}}</td>
-                    <td>{{parts[2]}}</td>
-                  </tr>
-                    % end
-                  % end
-                % end
-              </tbody>
-            </table>
-          </div>
+              % end
+            </tbody>
+          </table>
         % else:
-          <p class="placeholder-text" style="text-align: center; padding-top: 80px;">
-            Список рёбер пуст. Сгенерируйте случайный граф или загрузите .txt файл.
+          <p class="placeholder-text placeholder-empty-table" id="matrix-placeholder">
+            Укажите количество рёбер, выберите случайный пресет или загрузите файл, чтобы сгенерировать поля для ввода u, v, w.
           </p>
         % end
       </div>
+
+      <button type="submit" class="btn-submit-tsp" style="margin-top: 20px; width: 100%; max-width: 320px; align-self: flex-start;">
+        Найти оптимальный маршрут
+      </button>
     </div>
+  </form>
 
   </div>
 
