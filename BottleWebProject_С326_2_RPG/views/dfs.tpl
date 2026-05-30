@@ -86,11 +86,14 @@
 
     <!-- ПРИМЕР РАЗБОРА -->
     <div class="example-walkthrough">
-        <div class="ew-header">
-            <span class="ew-badge">📋 Пример</span>
-            <h2>Разбор входных данных</h2>
-            <p>Ниже показан конкретный набор транзакций и то, как алгоритм строит по ним граф и находит подозрительные цепочки. Используйте этот формат при ручном вводе.</p>
-        </div>
+<div class="ew-header">
+    <div class="ew-header-left">
+        <span class="ew-badge">📋 Пример</span>
+        <h2>Разбор входных данных</h2>
+        <p>Ниже показан конкретный набор транзакций и то, как алгоритм строит по ним граф и находит подозрительные цепочки.</p>
+    </div>
+    <span class="ew-toggle-icon">▼</span>
+</div>
 
         <div class="ew-body">
             <!-- Левая часть: входные данные -->
@@ -256,6 +259,208 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
                         </div>
                     </div>
                 </div>
+                <!-- Вставить ПОСЛЕ блока .ew-paths в правой секции примера -->
+
+<div class="ew-section-title" style="margin-top:1.5rem;">④ Пошаговая работа DFS</div>
+
+<div class="dfs-steps">
+
+    <!-- Шаг 0: Построение графа -->
+    <div class="dfs-step">
+        <div class="dfs-step-header">
+            <span class="dfs-step-num">Шаг 0</span>
+            <span class="dfs-step-title">Построение графа</span>
+        </div>
+        <div class="dfs-step-body">
+            <p>Каждая строка транзакции становится <strong>ориентированным ребром</strong>. Список смежности:</p>
+            <div class="dfs-adj">
+                <div class="dfs-adj-row sus">
+                    <span class="dfs-adj-key">A1B2C3</span>
+                    <span class="dfs-adj-arrow">→</span>
+                    <span class="dfs-adj-val">D4E5F6 (50 000, t=…001) &nbsp;|&nbsp; P6Q7R8 (3 000, t=…800)</span>
+                </div>
+                <div class="dfs-adj-row sus">
+                    <span class="dfs-adj-key">D4E5F6</span>
+                    <span class="dfs-adj-arrow">→</span>
+                    <span class="dfs-adj-val">G7H8I9 (49 500, t=…120)</span>
+                </div>
+                <div class="dfs-adj-row sus">
+                    <span class="dfs-adj-key">G7H8I9</span>
+                    <span class="dfs-adj-arrow">→</span>
+                    <span class="dfs-adj-val">J0K1L2 (49 000, t=…300)</span>
+                </div>
+                <div class="dfs-adj-row sus">
+                    <span class="dfs-adj-key">J0K1L2</span>
+                    <span class="dfs-adj-arrow">→</span>
+                    <span class="dfs-adj-val">M3N4O5 (48 200, t=…540)</span>
+                </div>
+                <div class="dfs-adj-row norm">
+                    <span class="dfs-adj-key">P6Q7R8</span>
+                    <span class="dfs-adj-arrow">→</span>
+                    <span class="dfs-adj-val">S9T0U1 (1 200, t=…000)</span>
+                </div>
+                <div class="dfs-adj-row norm">
+                    <span class="dfs-adj-key">S9T0U1</span>
+                    <span class="dfs-adj-arrow">→</span>
+                    <span class="dfs-adj-val">V2W3X4 (600, t=…200)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Шаг 1: Старт DFS из A1B2C3 -->
+    <div class="dfs-step">
+        <div class="dfs-step-header">
+            <span class="dfs-step-num">Шаг 1</span>
+            <span class="dfs-step-title">DFS из <code>A1B2C3</code> — выбор первого соседа</span>
+        </div>
+        <div class="dfs-step-body">
+            <div class="dfs-trace">
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Стек</span>
+                    <span class="dfs-trace-val">[A1B2C3]</span>
+                </div>
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Visited</span>
+                    <span class="dfs-trace-val">{A1B2C3}</span>
+                </div>
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Путь</span>
+                    <span class="dfs-trace-val">A1B2C3</span>
+                </div>
+            </div>
+            <p>Из <code>A1B2C3</code> два соседа. Сортируем по времени: <code>t=…800 → P6Q7R8</code> раньше, <code>t=…001 → D4E5F6</code> позже. DFS перебирает <strong>всех</strong> соседей — ищем максимальный путь, поэтому пробуем оба.</p>
+            <div class="dfs-check ok">✓ D4E5F6 ∉ visited &nbsp;·&nbsp; t=…001 &gt; t_start &nbsp;→&nbsp; <strong>переходим</strong></div>
+        </div>
+    </div>
+
+    <!-- Шаг 2 -->
+    <div class="dfs-step">
+        <div class="dfs-step-header">
+            <span class="dfs-step-num">Шаг 2</span>
+            <span class="dfs-step-title">Переход в <code>D4E5F6</code></span>
+        </div>
+        <div class="dfs-step-body">
+            <div class="dfs-trace">
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Стек</span>
+                    <span class="dfs-trace-val">[A1B2C3, D4E5F6]</span>
+                </div>
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Visited</span>
+                    <span class="dfs-trace-val">{A1B2C3, D4E5F6}</span>
+                </div>
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Путь</span>
+                    <span class="dfs-trace-val">A1B2C3 → D4E5F6</span>
+                </div>
+            </div>
+            <p>Из <code>D4E5F6</code> один сосед — <code>G7H8I9</code>.</p>
+            <div class="dfs-check ok">✓ G7H8I9 ∉ visited &nbsp;·&nbsp; t=…120 &gt; t=…001 &nbsp;→&nbsp; <strong>переходим</strong></div>
+        </div>
+    </div>
+
+    <!-- Шаг 3 -->
+    <div class="dfs-step">
+        <div class="dfs-step-header">
+            <span class="dfs-step-num">Шаг 3</span>
+            <span class="dfs-step-title">Переход в <code>G7H8I9</code></span>
+        </div>
+        <div class="dfs-step-body">
+            <div class="dfs-trace">
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Стек</span>
+                    <span class="dfs-trace-val">[A1B2C3, D4E5F6, G7H8I9]</span>
+                </div>
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Visited</span>
+                    <span class="dfs-trace-val">{A1B2C3, D4E5F6, G7H8I9}</span>
+                </div>
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Путь</span>
+                    <span class="dfs-trace-val">A1B2C3 → D4E5F6 → G7H8I9</span>
+                </div>
+            </div>
+            <div class="dfs-check ok">✓ J0K1L2 ∉ visited &nbsp;·&nbsp; t=…300 &gt; t=…120 &nbsp;→&nbsp; <strong>переходим</strong></div>
+        </div>
+    </div>
+
+    <!-- Шаг 4 -->
+    <div class="dfs-step">
+        <div class="dfs-step-header">
+            <span class="dfs-step-num">Шаг 4</span>
+            <span class="dfs-step-title">Переход в <code>J0K1L2</code></span>
+        </div>
+        <div class="dfs-step-body">
+            <div class="dfs-trace">
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Стек</span>
+                    <span class="dfs-trace-val">[A1B2C3, D4E5F6, G7H8I9, J0K1L2]</span>
+                </div>
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Visited</span>
+                    <span class="dfs-trace-val">{A1B2C3, D4E5F6, G7H8I9, J0K1L2}</span>
+                </div>
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Путь</span>
+                    <span class="dfs-trace-val">A1B2C3 → D4E5F6 → G7H8I9 → J0K1L2</span>
+                </div>
+            </div>
+            <div class="dfs-check ok">✓ M3N4O5 ∉ visited &nbsp;·&nbsp; t=…540 &gt; t=…300 &nbsp;→&nbsp; <strong>переходим</strong></div>
+        </div>
+    </div>
+
+    <!-- Шаг 5: финал -->
+    <div class="dfs-step dfs-step--alert">
+        <div class="dfs-step-header">
+            <span class="dfs-step-num alert">Шаг 5</span>
+            <span class="dfs-step-title">Тупик в <code>M3N4O5</code> — фиксируем путь</span>
+        </div>
+        <div class="dfs-step-body">
+            <div class="dfs-trace">
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Стек</span>
+                    <span class="dfs-trace-val">[A1B2C3, D4E5F6, G7H8I9, J0K1L2, M3N4O5]</span>
+                </div>
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Путь</span>
+                    <span class="dfs-trace-val sus">A1B2C3 → D4E5F6 → G7H8I9 → J0K1L2 → M3N4O5</span>
+                </div>
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Длина</span>
+                    <span class="dfs-trace-val"><strong>4 транзакции</strong></span>
+                </div>
+            </div>
+            <p>У <code>M3N4O5</code> нет исходящих рёбер — путь завершён. Сравниваем длину с порогом:</p>
+            <div class="dfs-check danger">⚠ 4 транзакции ≥ порог 4 &nbsp;→&nbsp; <strong>ПОДОЗРИТЕЛЬНЫЙ</strong></div>
+            <p style="margin-top:0.75rem;">После фиксации — <strong>backtracking</strong>: убираем <code>M3N4O5</code> из visited и стека, возвращаемся в <code>J0K1L2</code>, затем дальше вверх.</p>
+        </div>
+    </div>
+
+    <!-- Шаг 6: вторая ветка -->
+    <div class="dfs-step dfs-step--norm">
+        <div class="dfs-step-header">
+            <span class="dfs-step-num norm">Шаг 6</span>
+            <span class="dfs-step-title">Новый старт из <code>P6Q7R8</code></span>
+        </div>
+        <div class="dfs-step-body">
+            <p>После возврата алгоритм запускает DFS из каждой вершины без входящих рёбер. <code>P6Q7R8</code> — такая вершина (в неё не ведут переводы из других адресов, не считая A1B2C3).</p>
+            <div class="dfs-trace">
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Путь</span>
+                    <span class="dfs-trace-val">P6Q7R8 → S9T0U1 → V2W3X4</span>
+                </div>
+                <div class="dfs-trace-row">
+                    <span class="dfs-trace-label">Длина</span>
+                    <span class="dfs-trace-val">2 транзакции</span>
+                </div>
+            </div>
+            <div class="dfs-check ok">✓ 2 транзакции &lt; порог 4 &nbsp;→&nbsp; <strong>нормальная активность</strong></div>
+        </div>
+    </div>
+
+</div>
+
             </div>
         </div>
     </div>
@@ -479,6 +684,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const accordion = document.querySelector('.accordion');
     const header    = accordion.querySelector('.accordion-header');
     header.addEventListener('click', () => accordion.classList.toggle('open'));
+    const ew = document.querySelector('.example-walkthrough');
+if (ew) {
+    ew.querySelector('.ew-header').addEventListener('click', () => {
+        ew.classList.toggle('open');
+    })
+}
 });
 
 function copyExample() {
