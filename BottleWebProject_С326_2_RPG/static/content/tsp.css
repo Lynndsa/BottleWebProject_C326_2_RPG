@@ -5,7 +5,7 @@
 /* Кастомные алерты */
 .tsp-alert-danger {
     border-radius: 12px;
-    font-weight: 1700;
+    font-weight: 700;
     margin-bottom: 25px;
     padding: 15px;
 }
@@ -51,22 +51,16 @@
         background: #f1f5f9;
     }
 
-/* Основной двухколоночный макет */
-.tsp-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 25px;
-    margin-top: 25px;
-    align-items: start;
-}
-
-/* Панели-карточки */
+/* Панели-карточки (Улучшено: теперь они железно одинаковой высоты) */
 .card-panel {
     background: #ffffff;
     padding: 25px;
     border-radius: 16px;
     border: 1px solid #e2e8f0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
     .card-panel h2 {
@@ -88,25 +82,14 @@
     border-radius: 8px;
     padding: 6px 12px;
     font-weight: 500;
+    background-color: #ffffff;
+    transition: all 0.2s ease;
 }
 
-.inputs-inline-row {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.form-group-flex {
-    flex: 1;
-}
-
-.mb-20 {
-    margin-bottom: 20px;
-}
-
-.mb-25 {
-    margin-bottom: 25px;
-}
+    .btn-preset:hover {
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+    }
 
 .form-label-custom {
     display: block;
@@ -125,12 +108,32 @@
         color: #64748b;
     }
 
+/* Кастомные инпуты с плавным фокусом */
 .form-control-custom {
     width: 100%;
     border-radius: 10px;
     padding: 10px;
     border: 1px solid #cbd5e1;
+    background-color: #ffffff;
+    color: #0f172a;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
+
+    .form-control-custom:focus {
+        outline: none;
+        border-color: #0080cc;
+        box-shadow: 0 0 0 3px rgba(0, 128, 204, 0.15);
+    }
+
+    /* Подсветка ошибок валидации */
+    .form-control-custom.is-error {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+    }
+
+        .form-control-custom.is-error:focus {
+            box-shadow: 0 0 0 3px rgba(239, 44, 44, 0.15);
+        }
 
 /* Кнопка отправки */
 .btn-submit-tsp {
@@ -143,6 +146,7 @@
     color: #ffffff;
     cursor: pointer;
     transition: background 0.2s ease;
+    margin-top: auto; /* Выталкивает кнопку всегда к нижнему краю карточки */
 }
 
     .btn-submit-tsp:hover {
@@ -153,7 +157,7 @@
 .visual-container {
     border: 1px solid #f1f5f9;
     border-radius: 12px;
-    min-height: 410px;
+    min-height: 350px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -188,9 +192,9 @@
     color: #64748b;
     font-size: 14px;
     text-align: center;
-    max-width: 300px;
+    max-width: 320px;
     line-height: 1.6;
-    padding: 0 20px;
+    margin: 0 auto;
 }
 
 /* Подсветка текста результатов */
@@ -258,15 +262,10 @@
 
 /* ====== Таблица рёбер из файла ====== */
 .edges-table-wrapper {
-    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
-
-    .edges-table-wrapper h2 {
-        font-size: 20px;
-        color: #0f172a;
-        font-weight: 700;
-        margin-bottom: 20px;
-    }
 
 .edges-file-table {
     width: 100%;
@@ -276,6 +275,9 @@
 
     .edges-file-table thead {
         background: #f1f5f9;
+        position: sticky;
+        top: 0; /* Чтобы шапка таблицы не улетала при скролле */
+        z-index: 1;
     }
 
     .edges-file-table th,
@@ -296,4 +298,46 @@
 
     .edges-file-table tbody tr:hover {
         background: #e0f2fe;
+    }
+
+/* Красивый кастомный скроллбар для контейнера таблицы */
+.table-responsive {
+    flex: 1;
+    max-height: 410px; /* Идеальный размер, чтобы сравнять высоту с формой параметров */
+    overflow-y: auto;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+}
+
+    .table-responsive::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+.container-tsp {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.edges-file-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+    .edges-file-table th,
+    .edges-file-table td {
+        word-break: break-word;
     }
