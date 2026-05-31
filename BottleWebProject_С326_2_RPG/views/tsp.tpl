@@ -124,9 +124,14 @@
           <div style="display:flex; gap:10px; margin-bottom:16px;">
             <div style="flex:1; min-width:0;">
               <label class="form-label-custom">Вершины N</label>
-              <input type="number" name="n" id="input-n"
-                     class="form-control form-control-custom {{cls_n}}"
-                     value="{{val_n}}" placeholder="10" min="1" max="50">
+              <input type="number"
+       name="n"
+       id="input-n"
+       class="form-control form-control-custom {{cls_n}}"
+       value="{{val_n}}"
+       placeholder="10"
+       min="1"
+       max="50">
             </div>
             <div style="flex:1; min-width:0;">
               <label class="form-label-custom">Объекты M</label>
@@ -149,14 +154,14 @@
                    value="{{val_sites}}" placeholder="2 3 4">
           </div>
 
-          <button type="submit" class="btn btn-primary w-100 btn-submit-tsp">
+          <button type="submit" class="btn-submit-tsp">
             Найти оптимальный маршрут
           </button>
 
         </div>
       </div>
 
-      <!-- Правая карточка: таблица рёбер -->
+           <!-- Правая карточка: таблица рёбер -->
       <div class="card-panel edges-table-wrapper" style="flex:1 1 340px; min-width:340px;">
         <h2>Список рёбер графа</h2>
 
@@ -168,30 +173,63 @@
 
         <div class="table-responsive" id="matrix-wrapper" style="max-height:380px; overflow-y:auto;">
           % if val_n and val_n.isdigit() and int(val_n) > 0:
-            % n_val = int(val_n)
-            <table class="edges-file-table" id="matrix-table">
-              <thead>
-                <tr>
-                  <th style="width:10%;">#</th>
-                  <th>Вершина u (Откуда)</th>
-                  <th>Вершина v (Куда)</th>
-                  <th>Вес w (Расстояние)</th>
-                </tr>
-              </thead>
-              <tbody>
-                % for i in range(1, n_val + 1):
-                <tr>
-                  <td><strong>{{i}}</strong></td>
-                  <td><input type="text"   name="u_{{i}}" class="form-control-custom"
-                             value="{{_form.get('u_' + str(i), '')}}" placeholder="1"></td>
-                  <td><input type="text"   name="v_{{i}}" class="form-control-custom"
-                             value="{{_form.get('v_' + str(i), '')}}" placeholder="2"></td>
-                  <td><input type="number" name="w_{{i}}" class="form-control-custom"
-                             value="{{_form.get('w_' + str(i), '')}}" min="1" placeholder="—"></td>
-                </tr>
-                % end
-              </tbody>
-            </table>
+            % edge_count = len([key for key in _form.keys() if key.startswith('u_')])
+            % if edge_count == 0:
+              % edge_count = int(val_n)
+            % end
+           <table class="edges-file-table" id="matrix-table">
+  <thead>
+    <tr>
+      <th style="width:10%;">#</th>
+      <th>Вершина u (Откуда)</th>
+      <th>Вершина v (Куда)</th>
+      <th>Вес w (Расстояние)</th>
+      <th style="width:60px;">🗑</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    % for i in range(1, edge_count + 1):
+    <tr>
+      <td><strong>{{i}}</strong></td>
+
+      <td>
+        <input type="text"
+               name="u_{{i}}"
+               class="form-control-custom"
+               value="{{_form.get('u_' + str(i), '')}}"
+               placeholder="1">
+      </td>
+
+      <td>
+        <input type="text"
+               name="v_{{i}}"
+               class="form-control-custom"
+               value="{{_form.get('v_' + str(i), '')}}"
+               placeholder="2">
+      </td>
+
+      <td>
+        <input type="number"
+               name="w_{{i}}"
+               class="form-control-custom"
+               value="{{_form.get('w_' + str(i), '')}}"
+               min="1"
+               placeholder="—">
+      </td>
+
+      <td style="text-align:center;">
+        <button type="button"
+                class="btn-delete-edge"
+                onclick="removeEdgeRow(this)">
+          🗑
+        </button>
+      </td>
+
+    </tr>
+    % end
+  </tbody>
+</table>
           % else:
             <p class="placeholder-text placeholder-empty-table">
               Укажите количество вершин N, выберите случайный пресет или загрузите файл.
@@ -199,17 +237,11 @@
           % end
         </div>
 
-        <div style="display:flex; gap:10px; margin-top:15px; align-items:center;">
-          <button type="button" id="btn-add-edge"
-                  class="btn btn-light btn-sm btn-preset">
-            ➕ Добавить ребро
-          </button>
-        </div>
-
-        <button type="submit" class="btn-submit-tsp"
-                style="margin-top:15px; width:100%; max-width:320px;">
-          Найти оптимальный маршрут
-        </button>
+        % if defined('debug_info'):
+<div class="alert alert-info" style="margin-top:20px;">
+    <p class="result-p"><strong>Full:</strong> {{_result.get('full_path_str', '')}}</p>
+</div>
+% end
       </div>
 
     </div>
@@ -227,17 +259,26 @@
           <div class="graph-svg-output">{{!_svg}}</div>
         % elif _result:
           <div class="result-text-output">
-            <h4>Результат расчёта:</h4>
-            <p class="result-p"><strong>Оптимальный путь:</strong>
-               <span class="text-highlight-blue" style="font-size:1.25rem;">{{_result.get('path_str', '')}}</span></p>
-            <p class="result-p"><strong>Минимальное время:</strong>
-               <span class="text-highlight-green" style="font-size:1.25rem;">{{_result.get('min_weight', '')}}</span> ед.</p>
-          </div>
-        % else:
-          <p class="placeholder-text" style="padding:60px 0;">
-            Заполните поля параметров и рёбер графа для генерации визуальной схемы
-          </p>
-        % end
+            % elif _result:
+  <div class="result-text-output">
+    <h4>Результат расчёта:</h4>
+
+    <p class="result-p">
+      <strong>Оптимальный путь:</strong>
+      <span class="text-highlight-blue" style="font-size:1.25rem;">
+        {{_result.get('path_str', '')}}
+      </span>
+    </p>
+
+    <p class="result-p">
+      <strong>Минимальное время:</strong>
+      <span class="text-highlight-green" style="font-size:1.25rem;">
+        {{_result.get('min_weight', '')}}
+      </span> ед.
+    </p>
+  </div>
+% end
+
       </div>
     </div>
   </div>

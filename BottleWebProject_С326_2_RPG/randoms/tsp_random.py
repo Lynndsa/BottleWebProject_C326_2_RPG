@@ -1,4 +1,4 @@
-import random
+п»їimport random
 
 
 def generate_random_graph(n=None, m=None):
@@ -9,13 +9,12 @@ def generate_random_graph(n=None, m=None):
 
     k = random.randint(1, n)
 
-    # Остовное дерево — гарантирует связность
-    vertices = list(range(1, n + 1))
-    random.shuffle(vertices)
-
     edges = set()
     edge_list = []
 
+    # РћСЃС‚РѕРІРЅРѕРµ РґРµСЂРµРІРѕ вЂ” РіР°СЂР°РЅС‚РёСЂСѓРµС‚ СЃРІСЏР·РЅРѕСЃС‚СЊ
+    vertices = list(range(1, n + 1))
+    random.shuffle(vertices)
     for i in range(1, len(vertices)):
         u = vertices[i]
         v = vertices[random.randint(0, i - 1)]
@@ -25,11 +24,26 @@ def generate_random_graph(n=None, m=None):
             edges.add(edge)
             edge_list.append((u, v, w))
 
-    # Добавляем дополнительные рёбра для плотности
-    extra   = random.randint(n // 2, n)
-    target  = len(edge_list) + extra   # <-- фикс: считаем целевое количество заранее
-    attempts = 0
+    # Р’С‹Р±РёСЂР°РµРј РґРѕСЃС‚РѕРїСЂРёРјРµС‡Р°С‚РµР»СЊРЅРѕСЃС‚Рё
+    candidates = [v for v in range(1, n + 1) if v != k]
+    sites = random.sample(candidates, min(m, len(candidates)))
 
+    # Р“Р°СЂР°РЅС‚РёСЂСѓРµРј РїСЂСЏРјС‹Рµ СЂС‘Р±СЂР° РјРµР¶РґСѓ РІСЃРµРјРё РєР»СЋС‡РµРІС‹РјРё С‚РѕС‡РєР°РјРё
+    # РѕС‚РµР»СЊ + РІСЃРµ РґРѕСЃС‚РѕРїСЂРёРјРµС‡Р°С‚РµР»СЊРЅРѕСЃС‚Рё в†’ РїРѕР»РЅС‹Р№ РїРѕРґРіСЂР°С„ РјРµР¶РґСѓ РЅРёРјРё
+    key_nodes = [k] + sites
+    for i in range(len(key_nodes)):
+        for j in range(i + 1, len(key_nodes)):
+            u, v = key_nodes[i], key_nodes[j]
+            edge = (min(u, v), max(u, v))
+            if edge not in edges:
+                edges.add(edge)
+                w = random.randint(1, 20)
+                edge_list.append((u, v, w))
+
+    # Р”РѕР±Р°РІР»СЏРµРј РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ СЂС‘Р±СЂР° РґР»СЏ РїР»РѕС‚РЅРѕСЃС‚Рё
+    extra    = random.randint(n // 2, n)
+    target   = len(edge_list) + extra
+    attempts = 0
     while len(edge_list) < target and attempts < extra * 5:
         u = random.randint(1, n)
         v = random.randint(1, n)
@@ -40,9 +54,6 @@ def generate_random_graph(n=None, m=None):
                 w = random.randint(1, 20)
                 edge_list.append((u, v, w))
         attempts += 1
-
-    candidates = [v for v in range(1, n + 1) if v != k]
-    sites = random.sample(candidates, min(m, len(candidates)))
 
     return {
         'n':     str(n),

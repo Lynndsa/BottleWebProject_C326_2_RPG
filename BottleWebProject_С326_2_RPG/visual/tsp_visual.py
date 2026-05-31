@@ -1,29 +1,12 @@
-
 import io
-import base64
 import matplotlib
-matplotlib.use('Agg')  # без GUI
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import networkx as nx
 
 
-def build_svg(graph, best_path=None, hotel=None):
-    """
-    Строит SVG визуализацию графа.
-
-    Параметры:
-        graph     — словарь смежности {вершина: {сосед: вес}}
-        best_path — список вершин оптимального маршрута ['1','3','2','1']
-                    (если None — рисуем просто граф без маршрута)
-        hotel     — строка-ключ вершины-отеля
-
-    Возвращает:
-        строку SVG для вставки в шаблон через {{!svg_html}}
-    """
+def build_svg(graph, best_path=None, full_path=None, hotel=None):
     G = nx.Graph()
-
-    # Добавляем вершины и рёбра
     for u, neighbors in graph.items():
         G.add_node(u)
         for v, w in neighbors.items():
@@ -33,93 +16,88 @@ def build_svg(graph, best_path=None, hotel=None):
     if len(G.nodes) == 0:
         return ''
 
-    # Определяем рёбра маршрута
-    path_edges = set()
-    if best_path and len(best_path) > 1:
-        for i in range(len(best_path) - 1):
-            u, v = best_path[i], best_path[i + 1]
-            path_edges.add((min(u, v), max(u, v)))
-
-    # Layout
     pos = nx.spring_layout(G, seed=42, k=2.5)
-
     fig, ax = plt.subplots(figsize=(8, 6))
     fig.patch.set_facecolor('#f8fafc')
     ax.set_facecolor('#f8fafc')
 
-    # Цвета рёбер
-    edge_colors = []
-    edge_widths = []
-    for u, v in G.edges():
-        key = (min(u, v), max(u, v))
-        if key in path_edges:
-            edge_colors.append('#0080cc')
-            edge_widths.append(3.0)
-        else:
-            edge_colors.append('#cbd5e1')
-            edge_widths.append(1.2)
+    # Строим set рёбер маршрута — только оба направления, БЕЗ min/max
+    path_edge_set = set()
+    draw_path = full_path if full_path else best_path
+    if draw_path and len(draw_path) > 1:
+        for i in range(len(draw_path) - 1):
+            u, v = draw_path[i], draw_path[i + 1]
+            path_edge_set.add((u, v))
+            path_edge_set.add((v, u))
 
+    # Разделяем рёбра
+    normal_edges = []
+    route_edges  = []
+    for u, v in G.edges():
+        if (u, v) in path_edge_set or (v, u) in path_edge_set:
+            route_edges.append((u, v))
+        else:
+            normal_edges.append((u, v))
+
+    # Рисуем фоновые рёбра
     nx.draw_networkx_edges(G, pos, ax=ax,
-                           edge_color=edge_colors,
-                           width=edge_widths)
+                           edgelist=normal_edges,
+                           edge_color='#cbd5e1', width=1.2)
+
+    # Рисуем рёбра маршрута
+    if route_edges:
+        nx.draw_networkx_edges(G, pos, ax=ax,
+                               edgelist=route_edges,
+                               edge_color='#0080cc', width=3.0)
+
+    # Цвета вершин — подсвечиваем все вершины из full_path
+    full_path_nodes = set(full_path) if full_path else set()
+    key_nodes = set(best_path[:-1]) if best_path else set()
+
+    node_colors = []
+    node_sizes  = []
+    for node in G.nodes():
+        if node == hotel:
+            node_colors.append('#0f172a')   # отель — чёрный
+            node_sizes.append(700)
+        elif node in key_nodes:
+            node_colors.append('#0080cc')   # достопримечательность — синий
+            node_sizes.append(500)
+        elif node in full_path_nodes:
+            node_colors.append('#38bdf8')   # промежуточная — голубой
+            node_sizes.append(350)
+        else:
+            node_colors.append('#94a3b8')   # остальные — серый
+            node_sizes.append(300)
+
+    nx.draw_networkx_nodes(G, pos, ax=ax,
+                           node_color=node_colors,
+                           node_size=node_sizes)
+    nx.draw_networkx_labels(G, pos, ax=ax,
+                            font_color='white',
+                            font_size=9, font_weight='bold')
 
     # Веса рёбер
     edge_labels = nx.get_edge_attributes(G, 'weight')
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels,
                                  ax=ax, font_size=8, font_color='#475569')
 
-    # Цвета вершин
-    node_colors = []
-    node_sizes  = []
-    for node in G.nodes():
-        if node == hotel:
-            node_colors.append('#0f172a')  # отель — тёмный
-            node_sizes.append(600)
-        elif best_path and node in best_path:
-            node_colors.append('#0080cc')  # в маршруте — синий
-            node_sizes.append(500)
-        else:
-            node_colors.append('#94a3b8')  # остальные — серый
-            node_sizes.append(400)
-
-    nx.draw_networkx_nodes(G, pos, ax=ax,
-                           node_color=node_colors,
-                           node_size=node_sizes)
-
-    nx.draw_networkx_labels(G, pos, ax=ax,
-                            font_color='white',
-                            font_size=9,
-                            font_weight='bold')
-
-    # Легенда
-    legend = []
-    if hotel:
-        legend.append(mpatches.Patch(color='#0f172a', label=f'Отель ({hotel})'))
-    if best_path:
-        legend.append(mpatches.Patch(color='#0080cc', label='Маршрут'))
-    legend.append(mpatches.Patch(color='#94a3b8', label='Остальные вершины'))
-    if legend:
-        ax.legend(handles=legend, loc='upper left', fontsize=8,
-                  framealpha=0.8, facecolor='white')
-
-    # Заголовок
-    if best_path:
-        ax.set_title(' → '.join(best_path), fontsize=10,
-                     color='#0f172a', pad=10)
+    # Заголовок — только ключевые точки TSP
+    if draw_path:
+        # Обрезаем заголовок, если он слишком длинный, чтобы не "ломал" верстку
+        path_str = ' → '.join(str(n) for n in draw_path)
+        if len(path_str) > 60:
+            path_str = path_str[:57] + "..."
+        ax.set_title('Полный путь: ' + path_str, fontsize=10, color='#0f172a', pad=15)
 
     ax.axis('off')
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
 
-    # Сохраняем в SVG строку
     buf = io.StringIO()
     fig.savefig(buf, format='svg', bbox_inches='tight',
                 facecolor=fig.get_facecolor())
     plt.close(fig)
 
     svg_str = buf.getvalue()
-    # Вырезаем только тег <svg>...</svg>
     start = svg_str.find('<svg')
-    if start != -1:
-        svg_str = svg_str[start:]
-
-    return svg_str
+    return svg_str[start:] if start != -1 else svg_str
