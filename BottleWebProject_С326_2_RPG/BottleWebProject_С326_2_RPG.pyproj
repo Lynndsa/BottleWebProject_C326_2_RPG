@@ -41,7 +41,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="app.py" />
-    <Compile Include="randoms\tsp_random.py">
+    <Compile Include="tools\tsp_tools.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="routes.py" />
@@ -54,10 +54,14 @@
     <Compile Include="validators\tsp_validator.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="visual\tsp_visual.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="algorithms\" />
-    <Folder Include="randoms\" />
+    <Folder Include="visual\" />
+    <Folder Include="tools\" />
     <Folder Include="static\content\image\" />
     <Folder Include="validators\" />
     <Folder Include="static\" />
@@ -106,6 +110,7 @@
     <Content Include="static\scripts\modernizr-2.6.2.js" />
     <Content Include="static\scripts\respond.js" />
     <Content Include="static\scripts\respond.min.js" />
+    <Content Include="static\scripts\tsp_edges.js" />
     <Content Include="static\scripts\_references.js" />
     <Content Include="views\about.tpl" />
     <Content Include="views\bfs.tpl">
