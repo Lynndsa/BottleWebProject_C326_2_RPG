@@ -1,6 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 from bottle import route, run, template, static_file, request
-from randoms.tsp_random import generate_random_graph
+from tools.tsp_tools import generate_random_graph, log_to_file
 from validators.tsp_validator import parse_input, parse_txt_file
 from visual.tsp_visual import build_svg
 from algorithms.tsp_algorithm import solve_tsp, get_full_path,dijkstra_simple
@@ -31,10 +31,7 @@ def tsp_get():
 @route('/tsp', method='POST')
 def tsp_post():
 
-    # ==========================================================
     # 1. Загрузка из TXT
-    # ==========================================================
-
     upload = request.files.get('txt_file')
 
     if upload and upload.filename:
@@ -81,10 +78,7 @@ def tsp_post():
             errors={}
         )
 
-    # ==========================================================
     # 2. Ручной ввод
-    # ==========================================================
-
     n_raw = request.forms.get('n', '').strip()
     m = request.forms.get('m', '').strip()
     k = request.forms.get('k', '').strip()
@@ -131,10 +125,7 @@ def tsp_post():
 
     edges_text = '\n'.join(edges_lines)
 
-    # ==========================================================
     # 3. Валидация
-    # ==========================================================
-
     graph, hotel, targets, errors = parse_input(
         n_raw,
         edges_text,
@@ -150,10 +141,7 @@ def tsp_post():
             errors=errors
         )
 
-    # ==========================================================
     # 4. Проверка связности
-    # ==========================================================
-
     dists = dijkstra_simple(graph, hotel)
 
     unreachable = [
@@ -181,10 +169,7 @@ def tsp_post():
             }
         )
 
-    # ==========================================================
     # 5. Решение TSP
-    # ==========================================================
-
     best_path, min_dist = solve_tsp(
         graph,
         hotel,
@@ -200,18 +185,18 @@ def tsp_post():
             errors={'global': 'Маршрут не найден'}
         )
 
-    # ==========================================================
     # 6. Полный маршрут
-    # ==========================================================
-
     full_visual_path = get_full_path(
         graph,
         best_path
     )
-
-    # ==========================================================
-    # 7. Визуализация
-    # ==========================================================
+    
+    # 7. Запись в файл 
+    log_to_file(
+        form_data={'hotel': hotel, 'targets': targets},
+        result_data={'path': full_visual_path, 'dist': min_dist}
+    )
+    # 8. Визуализация
 
     svg_html = build_svg(
         graph,
@@ -225,7 +210,6 @@ def tsp_post():
         'min_weight': min_dist,
     }
     
-
     return template(
         'tsp',
         **_tsp_defaults(),

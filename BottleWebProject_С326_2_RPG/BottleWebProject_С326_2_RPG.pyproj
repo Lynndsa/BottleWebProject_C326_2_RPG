@@ -40,7 +40,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="app.py" />
-    <Compile Include="randoms\tsp_random.py">
+    <Compile Include="tools\tsp_tools.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="routes.py" />
@@ -60,7 +60,7 @@
   <ItemGroup>
     <Folder Include="algorithms\" />
     <Folder Include="visual\" />
-    <Folder Include="randoms\" />
+    <Folder Include="tools\" />
     <Folder Include="static\content\image\" />
     <Folder Include="validators\" />
     <Folder Include="static\" />

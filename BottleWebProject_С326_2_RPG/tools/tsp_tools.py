@@ -1,5 +1,6 @@
 ﻿import random
-
+import datetime
+import json
 
 def generate_random_graph(n=None, m=None):
     if n is None:
@@ -62,3 +63,12 @@ def generate_random_graph(n=None, m=None):
         'edges': '\n'.join(f'{u} {v} {w}' for u, v, w in edge_list),
         'sites': ' '.join(str(s) for s in sites),
     }
+def log_to_file(form_data, result_data, errors=None):
+    log_entry = {
+        'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'input': form_data,
+        'result': result_data,
+        'errors': errors
+    }
+    with open('tsp_history.json', 'a', encoding='utf-8') as f:
+        f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
