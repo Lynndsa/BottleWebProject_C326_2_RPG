@@ -1,7 +1,5 @@
-﻿# routes.py
-from bottle import route, run, template, static_file, request
+﻿# -*- coding: utf-8 -*-
 from randoms.tsp_random import generate_random_graph
-# -*- coding: utf-8 -*-
 from bottle import Bottle, route, view, static_file, run, template, request
 from datetime import datetime
 
@@ -59,6 +57,7 @@ def dfs_module():
         error=None,
         graph_svg=None,
         result=None,
+        parsed_file=[],
     )
 
     if request.method == 'POST':
@@ -85,6 +84,25 @@ def dfs_module():
         else:
             raw = request.forms.get('transactions', '')
 
+        # Предпросмотр: парсим строки для таблицы
+        parsed_file = []
+        for line in raw.strip().splitlines():
+            parts = line.strip().split()
+            if len(parts) == 4:
+                try:
+                    parsed_file.append({
+                        'sender':    parts[0],
+                        'receiver':  parts[1],
+                        'amount':    float(parts[2]),
+                        'timestamp': int(parts[3]),
+                        'valid':     True,
+                    })
+                except ValueError:
+                    parsed_file.append({'raw': line, 'valid': False})
+            else:
+                parsed_file.append({'raw': line, 'valid': False})
+
+        defaults['parsed_file'] = parsed_file
         defaults['transactions'] = raw
         defaults['result'] = run_dfs(raw, int(request.forms.get('threshold', 4)))
 

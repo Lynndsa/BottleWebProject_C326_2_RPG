@@ -6,7 +6,7 @@
 % _errors = defined('errors') and errors or {}
 % _result = defined('result') and result or None
 % _mode   = defined('input_mode') and input_mode or 'manual'
-% _parsed_file = defined('parsed_file') and parsed_file or None
+% _parsed_file = defined('parsed_file') and parsed_file or []
 
     <h1 class="page-title">Анализ финансовых транзакций</h1>
     <p class="subtitle">Поиск максимальных бесциклических путей в графе блокчейн-переводов для выявления схем отмывания денег.</p>
@@ -32,6 +32,7 @@
                     <div class="flow-step">Поиск цепочек</div><div class="flow-arrow">→</div>
                     <div class="flow-step danger">Подозрительные пути</div>
                 </div>
+                <!-- нумерованный список -->
                 <ol class="theory-list">
                     <li><strong>Индексация вершин</strong> — каждому адресу присваивается внутренний идентификатор.</li>
                     <li><strong>Построение списка смежности</strong> — для каждой вершины сохраняются исходящие переводы.</li>
@@ -45,6 +46,7 @@
                 <table class="theory-table">
                     <thead><tr><th>Структура данных</th><th>Назначение</th></tr></thead>
                     <tbody>
+                    <!-- динамические списки -->
                         <tr><td>Список смежности</td><td>Хранение графа транзакций</td></tr>
                         <tr><td>Set visited</td><td>Предотвращение циклов</td></tr>
                         <tr><td>Stack DFS</td><td>Обход графа в глубину</td></tr>
@@ -65,6 +67,7 @@
 
                 <h3>⚠ Признаки подозрительной активности</h3>
                 <div class="warning-box">
+                <!-- маркированный список -->
                     <ul>
                         <li>Длинные последовательности переводов между адресами.</li>
                         <li>Большое число промежуточных кошельков.</li>
@@ -96,64 +99,66 @@
 </div>
 
         <div class="ew-body">
-            <!-- Левая часть: входные данные -->
-            <div class="ew-section">
-                <div class="ew-section-title">① Входные транзакции <span class="ew-hint">формат: отправитель получатель сумма временная_метка</span></div>
-                <div class="ew-input-block">
-                    <table class="ew-table">
-                        <thead>
-                            <tr><th>#</th><th>Отправитель</th><th>Получатель</th><th>Сумма (BTC)</th><th>Метка времени</th><th>Дата (UTC)</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr class="ex-row-sus">
-                                <td>1</td><td class="addr">A1B2C3</td><td class="addr">D4E5F6</td>
-                                <td class="amount">50 000.00</td><td>1700000001</td><td>14.11.2023 22:13</td>
-                            </tr>
-                            <tr class="ex-row-sus">
-                                <td>2</td><td class="addr">D4E5F6</td><td class="addr">G7H8I9</td>
-                                <td class="amount">49 500.00</td><td>1700000120</td><td>14.11.2023 22:15</td>
-                            </tr>
-                            <tr class="ex-row-sus">
-                                <td>3</td><td class="addr">G7H8I9</td><td class="addr">J0K1L2</td>
-                                <td class="amount">49 000.00</td><td>1700000300</td><td>14.11.2023 22:18</td>
-                            </tr>
-                            <tr class="ex-row-sus">
-                                <td>4</td><td class="addr">J0K1L2</td><td class="addr">M3N4O5</td>
-                                <td class="amount">48 200.00</td><td>1700000540</td><td>14.11.2023 22:22</td>
-                            </tr>
-                            <tr>
-                                <td>5</td><td class="addr">P6Q7R8</td><td class="addr">S9T0U1</td>
-                                <td class="amount">1 200.00</td><td>1700001000</td><td>14.11.2023 22:30</td>
-                            </tr>
-                            <tr>
-                                <td>6</td><td class="addr">S9T0U1</td><td class="addr">V2W3X4</td>
-                                <td class="amount">600.00</td><td>1700001200</td><td>14.11.2023 22:33</td>
-                            </tr>
-                            <tr>
-                                <td>7</td><td class="addr">A1B2C3</td><td class="addr">P6Q7R8</td>
-                                <td class="amount">3 000.00</td><td>1699999800</td><td>14.11.2023 22:10</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="ew-copy-hint">
-                        <span class="ew-copy-label">Текст для вставки в форму:</span>
-                        <pre class="ew-pre">A1B2C3 D4E5F6 50000.00 1700000001
+
+            <!-- Верхний ряд: таблица + граф рядом -->
+            <div class="ew-top-row">
+
+                <!-- Блок 1: входные транзакции -->
+                <div class="ew-col">
+                    <div class="ew-section-title">① Входные транзакции <span class="ew-hint">формат: отправитель получатель сумма временная_метка</span></div>
+                    <div class="ew-input-block">
+                        <table class="ew-table">
+                            <thead>
+                                <tr><th>#</th><th>Отправитель</th><th>Получатель</th><th>Сумма (BTC)</th><th>Метка времени</th><th>Дата (UTC)</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr class="ex-row-sus">
+                                    <td>1</td><td class="addr">A1B2C3</td><td class="addr">D4E5F6</td>
+                                    <td class="amount">50 000.00</td><td>1700000001</td><td>14.11.2023 22:13</td>
+                                </tr>
+                                <tr class="ex-row-sus">
+                                    <td>2</td><td class="addr">D4E5F6</td><td class="addr">G7H8I9</td>
+                                    <td class="amount">49 500.00</td><td>1700000120</td><td>14.11.2023 22:15</td>
+                                </tr>
+                                <tr class="ex-row-sus">
+                                    <td>3</td><td class="addr">G7H8I9</td><td class="addr">J0K1L2</td>
+                                    <td class="amount">49 000.00</td><td>1700000300</td><td>14.11.2023 22:18</td>
+                                </tr>
+                                <tr class="ex-row-sus">
+                                    <td>4</td><td class="addr">J0K1L2</td><td class="addr">M3N4O5</td>
+                                    <td class="amount">48 200.00</td><td>1700000540</td><td>14.11.2023 22:22</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td><td class="addr">P6Q7R8</td><td class="addr">S9T0U1</td>
+                                    <td class="amount">1 200.00</td><td>1700001000</td><td>14.11.2023 22:30</td>
+                                </tr>
+                                <tr>
+                                    <td>6</td><td class="addr">S9T0U1</td><td class="addr">V2W3X4</td>
+                                    <td class="amount">600.00</td><td>1700001200</td><td>14.11.2023 22:33</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td><td class="addr">A1B2C3</td><td class="addr">P6Q7R8</td>
+                                    <td class="amount">3 000.00</td><td>1699999800</td><td>14.11.2023 22:10</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="ew-copy-hint">
+                            <span class="ew-copy-label">Текст для вставки в форму:</span>
+                            <pre class="ew-pre">A1B2C3 D4E5F6 50000.00 1700000001
 D4E5F6 G7H8I9 49500.00 1700000120
 G7H8I9 J0K1L2 49000.00 1700000300
 J0K1L2 M3N4O5 48200.00 1700000540
 P6Q7R8 S9T0U1 1200.00 1700001000
 S9T0U1 V2W3X4 600.00 1700001200
 A1B2C3 P6Q7R8 3000.00 1699999800</pre>
-                        <button class="btn btn-copy" onclick="copyExample()">📋 Скопировать</button>
+                            <button class="btn btn-copy" onclick="copyExample()">📋 Скопировать</button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Правая часть: граф и результат -->
-            <div class="ew-section">
-                <div class="ew-section-title">② Граф транзакций и найденные цепочки</div>
-
-                <!-- Граф схема -->
+                <!-- Блок 2: граф -->
+                <div class="ew-col">
+                    <div class="ew-section-title">② Граф транзакций и найденные цепочки</div>
                 <div class="ew-graph">
                     <svg viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg" class="ew-svg">
                         <defs>
@@ -214,8 +219,12 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
                         <text x="362" y="186" font-size="9" fill="#475569" font-weight="600">✓ Нормальная ветка</text>
                     </svg>
                 </div>
+                </div><!-- /ew-col граф -->
 
-                <!-- Найденные пути -->
+            </div><!-- /ew-top-row -->
+
+            <!-- Нижний блок на полную ширину: найденные пути -->
+            <div class="ew-full">
                 <div class="ew-section-title" style="margin-top:1rem;">③ Результат DFS (порог = 4)</div>
                 <div class="ew-paths">
                     <div class="ew-path ew-path--sus">
@@ -459,11 +468,11 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
         </div>
     </div>
 
-</div>
+</div><!-- /dfs-steps -->
 
-            </div>
-        </div>
-    </div>
+            </div><!-- /ew-full -->
+        </div><!-- /ew-body -->
+    </div><!-- /example-walkthrough -->
 
     <!-- ОСНОВНОЙ РЯД: ФОРМА + ГРАФ -->
     <div class="tx-layout">
@@ -550,13 +559,19 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
     </div>
 
     <!-- ТАБЛИЦА ПРЕДПРОСМОТРА ФАЙЛА -->
-    % if _mode == 'file' and _parsed_file and len(_parsed_file) > 0:
+    % if _parsed_file and len(_parsed_file) > 0:
     <div class="card card--file-preview">
         <div class="file-preview-header">
+            % if _mode == 'file':
             <h2>📂 Данные из загруженного файла</h2>
+            % elif _mode == 'random':
+            <h2>🎲 Случайно сгенерированные транзакции</h2>
+            % else:
+            <h2>📋 Предпросмотр транзакций</h2>
+            % end
             <span class="file-preview-badge">{{len(_parsed_file)}} строк</span>
         </div>
-        <p class="file-preview-desc">Все транзакции, считанные из файла .txt. Строки с ошибками не войдут в анализ.</p>
+        <p class="file-preview-desc">Все транзакции, считанные из входных данных. Строки с ошибками не войдут в анализ.</p>
         <div class="tx-table-wrapper">
             <table class="tx-table tx-table--preview">
                 <thead>

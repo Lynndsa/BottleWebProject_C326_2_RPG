@@ -27,16 +27,15 @@
     --warning: #d97706;
     --warning-bg: #fffbeb;
     --warning-border: #fcd34d;
-    /* Единый базовый размер — меняй здесь одну цифру */
-    font-size: 18px;
 }
 
 /* ── Компоновка ── */
 .container-tx {
+    font-size: 26px;
+    /* Базовый размер шрифта страницы — меняй здесь */
     max-width: 1600px;
     margin: 0 auto;
     padding: 2rem 1.5rem 4rem;
-    font-size: 1rem; /* = 18px */
 }
 
 /* ── Шапка ── */
@@ -1003,13 +1002,36 @@ tr.row-invalid td {
 }
 
 .example-walkthrough.open .ew-body {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: block;
     border-top: 3px solid var(--slate-200);
 }
 
+/* Верхний ряд: таблица + граф — два блока рядом */
+.ew-top-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    border-bottom: 3px solid var(--slate-200);
+}
+
+.ew-col {
+    padding: 1.5rem 1.75rem;
+    min-width: 0;
+}
+
+    .ew-col:first-child {
+        border-right: 2px solid var(--slate-200);
+    }
+
+/* Нижний блок: полная ширина */
+.ew-full {
+    padding: 1.5rem 1.75rem;
+}
+
+/* Старый класс — на случай если где-то остался */
 .ew-section {
     padding: 1.5rem 1.75rem;
+    min-width: 0;
 }
 
     .ew-section:first-child {
@@ -1498,18 +1520,18 @@ tr.row-invalid td {
         grid-template-columns: 1fr 1fr;
     }
 
-    .ew-body {
+    .ew-top-row {
         grid-template-columns: 1fr;
     }
 
-    .ew-section:first-child {
+    .ew-col:first-child {
         border-right: none;
         border-bottom: 2px solid var(--slate-200);
     }
 }
 
 @media (max-width: 600px) {
-    :root {
+    .container-tx {
         font-size: 16px;
     }
 
@@ -1538,4 +1560,13 @@ tr.row-invalid td {
     .route-arrow {
         font-size: 1.5rem;
     }
+}
+
+/* ── Сброс шрифта в шапке (navbar из layout.tpl не должна увеличиваться) ── */
+.navbar-custom,
+.navbar-custom .navbar-brand,
+.navbar-custom .navbar-brand span,
+.navbar-custom .nav li a,
+.navbar-custom .navbar-toggle {
+    font-size: initial;
 }

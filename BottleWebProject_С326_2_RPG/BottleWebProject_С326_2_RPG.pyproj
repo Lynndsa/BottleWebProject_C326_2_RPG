@@ -40,6 +40,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="app.py" />
+    <Compile Include="randoms\dfs_random.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="randoms\tsp_random.py">
       <SubType>Code</SubType>
     </Compile>
