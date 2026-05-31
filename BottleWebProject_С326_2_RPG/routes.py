@@ -28,6 +28,18 @@ def tsp_get():
     return template('tsp', **_tsp_defaults())
 
 
+@route('/tsp/random', method='POST')
+def tsp_random():
+    raw = generate_random_graph()
+    form = {'n': raw['n'], 'm': raw['m'], 'k': raw['k'], 'sites': raw['sites']}
+    for i, line in enumerate(raw['edges'].strip().splitlines(), 1):
+        parts = line.strip().split()
+        if len(parts) == 3:
+            form[f'u_{i}'] = parts[0]
+            form[f'v_{i}'] = parts[1]
+            form[f'w_{i}'] = parts[2]
+    return template('tsp', **_tsp_defaults(), form=form, errors={})
+
 @route('/tsp', method='POST')
 def tsp_post():
 

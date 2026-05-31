@@ -9,3 +9,4 @@
     "dist": 22
   },
   " errors": null}
+{"timestamp": "2026-05-31 16:10:01", "input": {"hotel": "10", "targets": ["4", "8", "3", "5"]}, "result": {"path": ["10", "4", "5", "3", "8", "10"], "dist": 47}, "errors": null}
