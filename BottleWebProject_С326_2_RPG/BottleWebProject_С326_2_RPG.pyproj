@@ -67,6 +67,7 @@
     <Folder Include="views\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="static\content\about.css" />
     <Content Include="static\content\bfs.css" />
     <Content Include="static\content\image\excursion_theory_base.svg" />
     <Content Include="static\content\image\excursion_theory_path.svg" />
