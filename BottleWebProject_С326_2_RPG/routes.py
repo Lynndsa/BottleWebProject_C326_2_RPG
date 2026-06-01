@@ -43,11 +43,16 @@ def tsp_random():
 @route('/tsp', method='POST')
 def tsp_post():
 
-    # 1. Загрузка из TXT
+#  Загрузка из файла
     upload = request.files.get('txt_file')
-
     if upload and upload.filename:
-
+        filename = upload.filename.lower()
+        if not filename.endswith(('.txt', '.json')):
+            return template(
+                'tsp',
+                **_tsp_defaults(),
+                errors={'global': 'Можно загружать только файлы формата .txt или .json'}
+            )
         try:
             content = upload.file.read().decode('utf-8')
         except Exception:
@@ -57,7 +62,27 @@ def tsp_post():
                 errors={'global': 'Не удалось прочитать файл'}
             )
 
-        form_data, errors = parse_txt_file(content)
+        # JSON формат
+        if filename.endswith('.json'):
+            try:
+                import json
+                data = json.loads(content)
+                form_data = {
+                    'n':     str(data['n']),
+                    'm':     str(data['m']),
+                    'k':     str(data['k']),
+                    'sites': ' '.join(str(s) for s in data['sites']),
+                    'edges': '\n'.join(f"{e['u']} {e['v']} {e['w']}" for e in data['edges']),
+                }
+                errors = {}
+            except Exception:
+                return template(
+                    'tsp',
+                    **_tsp_defaults(),
+                    errors={'global': 'Неверный формат JSON. Ожидается: {"n":..,"m":..,"k":..,"sites":[..],"edges":[{"u":.,"v":.,"w":..}]}'}
+                )
+        else:
+            form_data, errors = parse_txt_file(content)
 
         if errors:
             return template(
@@ -73,11 +98,8 @@ def tsp_post():
             'k': form_data['k'],
             'sites': form_data['sites']
         }
-
         for i, line in enumerate(form_data['edges'].splitlines(), 1):
-
             parts = line.split()
-
             if len(parts) == 3:
                 form[f'u_{i}'] = parts[0]
                 form[f'v_{i}'] = parts[1]
@@ -140,6 +162,7 @@ def tsp_post():
     # 3. Валидация
     graph, hotel, targets, errors = parse_input(
         n_raw,
+        m,
         edges_text,
         k,
         sites
@@ -160,26 +183,19 @@ def tsp_post():
         t for t in targets
         if dists.get(t, float('inf')) == float('inf')
     ]
+   
 
     if unreachable:
-
-        svg_html = build_svg(
-            graph,
-            best_path=None,
-            full_path=None,
-            hotel=hotel
-        )
-
-        return template(
-            'tsp',
-            **_tsp_defaults(),
-            form=form,
-            svg_html=svg_html,
-            errors={
-                'global':
-                f'Цели {unreachable} недостижимы из отеля {hotel}!'
-            }
-        )
+        svg_html = build_svg(graph, best_path=None, full_path=None,
+                             hotel=hotel, unreachable=unreachable)
+    
+        if len(unreachable) == 1:
+            msg = f'Вершина {unreachable[0]} недостижима из отеля {hotel}!'
+        else:
+            msg = f'Вершины {", ".join(unreachable)} недостижимы из отеля {hotel}!'
+    
+        return template('tsp', **_tsp_defaults(), form=form, svg_html=svg_html,
+                        errors={'global': msg})
 
     # 5. Решение TSP
     best_path, min_dist = solve_tsp(

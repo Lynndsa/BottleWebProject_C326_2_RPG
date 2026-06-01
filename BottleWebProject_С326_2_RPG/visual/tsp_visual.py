@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 
-def build_svg(graph, best_path=None, full_path=None, hotel=None):
+def build_svg(graph, best_path=None, full_path=None, hotel=None, unreachable=None):
     G = nx.Graph()
     for u, neighbors in graph.items():
         G.add_node(u)
@@ -16,12 +16,12 @@ def build_svg(graph, best_path=None, full_path=None, hotel=None):
     if len(G.nodes) == 0:
         return ''
 
-    pos = nx.spring_layout(G, seed=42, k=2.5)
+    pos = nx.circular_layout(G)
     fig, ax = plt.subplots(figsize=(8, 6))
     fig.patch.set_facecolor('#f8fafc')
     ax.set_facecolor('#f8fafc')
 
-    # Строим set рёбер маршрута — только оба направления, БЕЗ min/max
+    # Рёбра маршрута
     path_edge_set = set()
     draw_path = full_path if full_path else best_path
     if draw_path and len(draw_path) > 1:
@@ -30,7 +30,6 @@ def build_svg(graph, best_path=None, full_path=None, hotel=None):
             path_edge_set.add((u, v))
             path_edge_set.add((v, u))
 
-    # Разделяем рёбра
     normal_edges = []
     route_edges  = []
     for u, v in G.edges():
@@ -39,20 +38,18 @@ def build_svg(graph, best_path=None, full_path=None, hotel=None):
         else:
             normal_edges.append((u, v))
 
-    # Рисуем фоновые рёбра
     nx.draw_networkx_edges(G, pos, ax=ax,
                            edgelist=normal_edges,
                            edge_color='#cbd5e1', width=1.2)
-
-    # Рисуем рёбра маршрута
     if route_edges:
         nx.draw_networkx_edges(G, pos, ax=ax,
                                edgelist=route_edges,
                                edge_color='#0080cc', width=3.0)
 
-    # Цвета вершин — подсвечиваем все вершины из full_path
+    # Цвета вершин
     full_path_nodes = set(full_path) if full_path else set()
-    key_nodes = set(best_path[:-1]) if best_path else set()
+    key_nodes       = set(best_path[:-1]) if best_path else set()
+    unreachable_set = set(unreachable) if unreachable else set()
 
     node_colors = []
     node_sizes  = []
@@ -60,6 +57,9 @@ def build_svg(graph, best_path=None, full_path=None, hotel=None):
         if node == hotel:
             node_colors.append('#0f172a')   # отель — чёрный
             node_sizes.append(700)
+        elif node in unreachable_set:
+            node_colors.append('#ef4444')   # недостижимая — красный
+            node_sizes.append(500)
         elif node in key_nodes:
             node_colors.append('#0080cc')   # достопримечательность — синий
             node_sizes.append(500)
@@ -77,17 +77,14 @@ def build_svg(graph, best_path=None, full_path=None, hotel=None):
                             font_color='white',
                             font_size=9, font_weight='bold')
 
-    # Веса рёбер
     edge_labels = nx.get_edge_attributes(G, 'weight')
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels,
                                  ax=ax, font_size=8, font_color='#475569')
 
-    # Заголовок — только ключевые точки TSP
     if draw_path:
-        # Обрезаем заголовок, если он слишком длинный, чтобы не "ломал" верстку
         path_str = ' → '.join(str(n) for n in draw_path)
         if len(path_str) > 60:
-            path_str = path_str[:57] + "..."
+            path_str = path_str[:57] + '...'
         ax.set_title('Полный путь: ' + path_str, fontsize=10, color='#0f172a', pad=15)
 
     ax.axis('off')

@@ -4,7 +4,7 @@ import json
 
 def generate_random_graph(n=None, m=None):
     if n is None:
-        n = random.randint(5, 15)
+        n = random.randint(5, 25)
     if m is None:
         m = random.randint(2, min(6, n - 1))
 
