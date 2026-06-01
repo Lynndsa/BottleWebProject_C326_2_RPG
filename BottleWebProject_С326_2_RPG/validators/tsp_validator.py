@@ -1,83 +1,76 @@
 ﻿def parse_input(n, edges_text, hotel_k, sites_text):
-    """
-    Принимает
-        n          — количество вершин (строка из формы)
-        edges_text — рёбра вида "u v w", каждое на новой строке
-        hotel_k    — номер вершины-отеля (строка из формы)
-        sites_text — номера достопримечательностей через пробел
-
-    Возвращает:
-        (graph, hotel, targets, errors)
-    """
     errors = {}
 
-    # Валидация n
+    # 1. Валидация N
     try:
-        n = int(n)
-        if not (1 <= n <= 50):
-            errors['n'] = 'Число вершин должно быть от 1 до 50'
+        n_val = int(n)
+        if not (1 <= n_val <= 50):
+            errors['n'] = 'Число вершин от 1 до 50'
+            n_val = None
     except (TypeError, ValueError):
         errors['n'] = 'Введите целое число'
-        n = None
+        n_val = None
 
-    # Валидация отеля K
-    try:
-        hotel_k = int(hotel_k)
-        if n and not (1 <= hotel_k <= n):
-            errors['k'] = f'Отель должен быть от 1 до {n}'
-    except (TypeError, ValueError):
-        errors['k'] = 'Введите целое число'
-        hotel_k = None
-
-    # Парсинг рёбер
+    # 2. Инициализация графа (все ключи — СТРОКИ)
     graph = {}
-    if n:
-        for i in range(1, n + 1):
+    if n_val:
+        for i in range(1, n_val + 1):
             graph[str(i)] = {}
 
+    # 3. Валидация отеля (приводим к строке сразу)
+    hotel = None
+    try:
+        k_val = int(hotel_k)
+        if n_val and not (1 <= k_val <= n_val):
+            errors['k'] = f'Отель от 1 до {n_val}'
+        else:
+            hotel = str(k_val)
+    except (TypeError, ValueError):
+        errors['k'] = 'Введите целое число'
+
+    # 4. Парсинг рёбер
     if edges_text:
         for line_num, line in enumerate(edges_text.strip().splitlines(), 1):
             parts = line.strip().split()
-            if not parts:
-                continue
+            if not parts: continue
             if len(parts) != 3:
-                errors['edges'] = f'Строка {line_num}: ожидается формат "u v w"'
+                errors['edges'] = f'Строка {line_num}: формат "u v w"'
                 break
             try:
+                # Везде приводим вершины к строкам
                 u, v, w = str(int(parts[0])), str(int(parts[1])), int(parts[2])
-                if n and (int(u) > n or int(v) > n):
-                    errors['edges'] = f'Строка {line_num}: вершина выходит за пределы N={n}'
+                if n_val and (int(u) > n_val or int(v) > n_val):
+                    errors['edges'] = f'Строка {line_num}: вершина > N'
                     break
                 if w < 0:
-                    errors['edges'] = f'Строка {line_num}: вес не может быть отрицательным'
+                    errors['edges'] = f'Строка {line_num}: вес < 0'
                     break
                 graph[u][v] = w
                 graph[v][u] = w
             except ValueError:
-                errors['edges'] = f'Строка {line_num}: u, v, w должны быть целыми числами'
+                errors['edges'] = f'Строка {line_num}: нужны числа'
                 break
     else:
-        errors['edges'] = 'Введите рёбра графа'
+        errors['edges'] = 'Введите рёбра'
 
-    # Парсинг достопримечательностей
+    # 5. Парсинг достопримечательностей
     targets = []
     if sites_text:
         try:
+            # Приводим к строкам
             raw = [str(int(x)) for x in sites_text.strip().split()]
             if len(raw) > 8:
-                errors['sites'] = 'Не более 8 достопримечательностей'
-            elif n and any(int(x) > n for x in raw):
-                errors['sites'] = f'Все объекты должны быть от 1 до {n}'
-            elif hotel_k and str(hotel_k) in raw:
-                errors['sites'] = 'Достопримечательность не может совпадать с отелем'
+                errors['sites'] = 'Не более 8 объектов'
+            elif n_val and any(int(x) > n_val for x in raw):
+                errors['sites'] = f'Объекты от 1 до {n_val}'
+            elif hotel and hotel in raw:
+                errors['sites'] = 'Отель не может быть целью'
             else:
                 targets = raw
         except ValueError:
-            errors['sites'] = 'Введите номера вершин через пробел'
+            errors['sites'] = 'Введите номера через пробел'
     else:
         errors['sites'] = 'Введите достопримечательности'
-
-    hotel = str(hotel_k) if hotel_k else None
 
     return graph, hotel, targets, errors
 
