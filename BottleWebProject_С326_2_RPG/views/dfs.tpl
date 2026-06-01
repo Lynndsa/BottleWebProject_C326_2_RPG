@@ -543,17 +543,13 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
         <div class="tx-graph">
             <div class="card">
                 <h2>Визуализация графа транзакций</h2>
-                <div class="canvas-container">
-                    % if defined('graph_svg') and graph_svg:
-                        {{!graph_svg}}
+                   % if defined('graph_html') and graph_html:
+                        {{!graph_html}}
                     % else:
-                        <div class="canvas-placeholder">
-                            <div class="icon">🕸️</div>
-                            <div class="title">Рабочая область графа пуста</div>
-                            <div class="desc">Введите транзакции вручную, сгенерируйте случайные или загрузите файл .txt</div>
+                        <div class="canvas-container">
+                            <div class="canvas-placeholder">...</div>
                         </div>
                     % end
-                </div>
             </div>
         </div>
     </div>
@@ -667,29 +663,6 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
             % else:
             <p style="color: var(--slate-500); font-size: 0.95rem; font-weight: 600;">Пути не найдены. Проверьте входные данные.</p>
             % end
-        </div>
-
-        <div class="card">
-            <h2>📋 Список транзакций</h2>
-            <div class="tx-table-wrapper">
-                <table class="tx-table">
-                    <thead>
-                        <tr><th>#</th><th>Отправитель</th><th>Получатель</th><th>Сумма</th><th>Временная метка</th><th>В пути</th></tr>
-                    </thead>
-                    <tbody>
-                        % for i, tx in enumerate(_result['transactions']):
-                        <tr class="{{'highlighted' if tx['in_suspicious_path'] else ''}}">
-                            <td>{{i + 1}}</td>
-                            <td class="addr">{{tx['sender']}}</td>
-                            <td class="addr">{{tx['receiver']}}</td>
-                            <td class="amount">{{tx['amount']}}</td>
-                            <td>{{tx['timestamp']}}</td>
-                            <td>{{'⚠ Да' if tx['in_suspicious_path'] else '—'}}</td>
-                        </tr>
-                        % end
-                    </tbody>
-                </table>
-            </div>
         </div>
     % end
 </div>

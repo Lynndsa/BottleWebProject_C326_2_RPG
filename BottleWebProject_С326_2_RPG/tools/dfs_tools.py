@@ -1,6 +1,3 @@
-"""
-dfs_random.py — генерация случайных финансовых транзакций для DFS-анализа.
-"""
 
 import random
 import string
