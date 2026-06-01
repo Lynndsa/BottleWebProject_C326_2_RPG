@@ -1,12 +1,8 @@
-// ============================================================
-//  tsp_edges.js — динамическая таблица рёбер
-// ============================================================
+
 
 let rowCount = 0;
 
-// ============================================================
-// Инициализация
-// ============================================================
+// Инициализаци
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -32,9 +28,8 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-// ============================================================
 // Добавление строки вручную
-// ============================================================
+
 
 function addEdgeRow() {
 
@@ -91,10 +86,7 @@ function addEdgeRow() {
     }
 }
 
-
-// ============================================================
 // Автоматическая генерация по N
-// ============================================================
 
 function generateRowsFromN() {
 
@@ -110,7 +102,6 @@ function generateRowsFromN() {
 
     let tbody = document.querySelector('#matrix-table tbody');
 
-    // Если таблицы нет — создаём её
     if (!tbody) {
 
         const wrapper = document.getElementById('matrix-wrapper');
@@ -120,9 +111,9 @@ function generateRowsFromN() {
                 <thead>
                     <tr>
                         <th style="width:10%;">#</th>
-                        <th>Вершина u (Откуда)</th>
-                        <th>Вершина v (Куда)</th>
-                        <th>Вес w (Расстояние)</th>
+                        <th>Вершина u</th>
+                        <th>Вершина v</th>
+                        <th>Вес w</th>
                         <th style="width:60px;">🗑</th>
                     </tr>
                 </thead>
@@ -135,27 +126,16 @@ function generateRowsFromN() {
 
     let currentRows = tbody.querySelectorAll('tr').length;
 
-    // Добавляем строки
     while (currentRows < targetRows) {
         addEdgeRow();
         currentRows++;
-    }
-
-    // Удаляем лишние
-    while (currentRows > targetRows) {
-
-        tbody.removeChild(tbody.lastElementChild);
-
-        currentRows--;
     }
 
     rowCount = currentRows;
 }
 
 
-// ============================================================
 // Удаление строки
-// ============================================================
 
 function removeEdgeRow(button) {
 
@@ -169,9 +149,7 @@ function removeEdgeRow(button) {
 }
 
 
-// ============================================================
 // Перенумерация после удаления
-// ============================================================
 
 function renumberRows() {
 
@@ -190,3 +168,10 @@ function renumberRows() {
 
     rowCount = rows.length;
 }
+// Скролл к результату после расчёта
+window.addEventListener('load', function () {
+    const anchor = document.getElementById('result-anchor');
+    if (anchor) {
+        anchor.scrollIntoView({ behavior: 'smooth' });
+    }
+});

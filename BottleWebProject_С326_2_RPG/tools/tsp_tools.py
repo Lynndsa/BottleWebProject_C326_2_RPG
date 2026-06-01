@@ -1,12 +1,16 @@
 import random
 import datetime
 import json
-
+import zipfile
+import io
+from flask import send_file
+from visual.tsp_visual import _build_fig
+import matplotlib.pyplot as plt
 
 def generate_random_graph(n=None, m=None):
 
     if n is None:
-        n = random.randint(5, 15)
+        n = random.randint(5, 25)
     if m is None:
         m = random.randint(2, min(6, n - 1))
 
@@ -84,3 +88,26 @@ def log_to_file(form_data, result_data, errors=None):
     }
     with open('tsp_history.json', 'a', encoding='utf-8') as f:
         f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
+
+
+def build_zip(graph_data, form_data, result_data, errors=None):
+    log_entry = {
+        'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'input': form_data,
+        'result': result_data,
+        'errors': errors
+    }
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr('result.json', json.dumps(log_entry, ensure_ascii=False, indent=2))
+
+        fig = _build_fig(**graph_data)
+        img_buf = io.BytesIO()
+        fig.savefig(img_buf, format='png', bbox_inches='tight',
+                    facecolor=fig.get_facecolor())
+        plt.close(fig)
+        img_buf.seek(0)
+        zf.writestr('graph.png', img_buf.getvalue())
+
+    buf.seek(0)
+    return buf

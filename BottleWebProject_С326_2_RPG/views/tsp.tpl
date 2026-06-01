@@ -23,12 +23,7 @@
   <h1 class="page-title">Планирование экскурсий</h1>
   <p class="subtitle">Оптимальный маршрут туриста — задача коммивояжёра (TSP)</p>
 
-  % if _errors.get('global'):
-    <div class="alert alert-danger tsp-alert-danger" style="margin-bottom: 20px;">
-      ⚠️ {{_errors['global']}}
-    </div>
-  % end
-
+  <!-- ====== Теория ====== -->
   <div class="card-panel theory-card-wrapper" style="margin-bottom: 25px;">
     <details class="theory-accordion-clean" {{'open' if not _result else ''}}>
       <summary>📖 Справка: Теория и пошаговый разбор алгоритма TSP</summary>
@@ -94,20 +89,18 @@
     </details>
   </div>
 
-  <!-- ================================================================
-       ФОРМА — охватывает ОБЕ карточки (параметры + таблица рёбер)
-  ================================================================ -->
+  <!-- ====== Форма ====== -->
   <form action="/tsp" method="POST" enctype="multipart/form-data" id="tsp-form">
-
     <input type="file" name="txt_file" id="txt_file_input"
-           accept=".txt" style="display:none"
+           accept=".txt,.json" style="display:none"
            onchange="document.getElementById('tsp-form').submit()">
 
-    <div class="row" style="display:flex; flex-wrap:wrap; gap:20px; align-items:stretch;">
+    <!-- Две карточки рядом -->
+   <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:start; margin-bottom:20px;">
 
       <!-- Левая карточка: параметры -->
       <div style="flex:1 1 340px; min-width:340px;">
-        <div class="card-panel" style="margin-bottom:0; height:auto;">
+      <div class="card-panel" style="margin-bottom:0;">
           <h2 style="margin-top:0;">Параметры графа</h2>
 
           <div class="preset-buttons" style="display:flex; gap:10px; margin-bottom:18px;">
@@ -117,21 +110,16 @@
             </button>
             <button type="button" class="btn btn-light btn-sm btn-preset" style="flex:1;"
                     onclick="document.getElementById('txt_file_input').click()">
-              📁 Загрузить из .txt
+              📁 Загрузить из файла
             </button>
           </div>
 
           <div style="display:flex; gap:10px; margin-bottom:16px;">
             <div style="flex:1; min-width:0;">
               <label class="form-label-custom">Вершины N</label>
-              <input type="number"
-       name="n"
-       id="input-n"
-       class="form-control form-control-custom {{cls_n}}"
-       value="{{val_n}}"
-       placeholder="10"
-       min="1"
-       max="50">
+              <input type="number" name="n" id="input-n"
+                     class="form-control form-control-custom {{cls_n}}"
+                     value="{{val_n}}" placeholder="10" min="1" max="50">
             </div>
             <div style="flex:1; min-width:0;">
               <label class="form-label-custom">Объекты M</label>
@@ -158,11 +146,17 @@
             Найти оптимальный маршрут
           </button>
 
+          % if _errors.get('global'):
+          <div class="alert alert-danger tsp-alert-danger" style="margin-top:15px; margin-bottom:0;">
+            ⚠️ {{_errors['global']}}
+          </div>
+          % end
+
         </div>
       </div>
 
-           <!-- Правая карточка: таблица рёбер -->
-      <div class="card-panel edges-table-wrapper" style="flex:1 1 340px; min-width:340px;">
+      <!-- Правая карточка: таблица рёбер -->
+      <div class="card-panel edges-table-wrapper" style="flex:2 1 450px; min-width:450px;">
         <h2>Список рёбер графа</h2>
 
         % if _errors.get('edges'):
@@ -171,65 +165,46 @@
           </div>
         % end
 
-        <div class="table-responsive" id="matrix-wrapper" style="max-height:380px; overflow-y:auto;">
+        <div class="table-responsive" id="matrix-wrapper" style="max-height:520px; overflow-y:auto;">
           % if val_n and val_n.isdigit() and int(val_n) > 0:
             % edge_count = len([key for key in _form.keys() if key.startswith('u_')])
             % if edge_count == 0:
               % edge_count = int(val_n)
             % end
-           <table class="edges-file-table" id="matrix-table">
-  <thead>
-    <tr>
-      <th style="width:10%;">#</th>
-      <th>Вершина u (Откуда)</th>
-      <th>Вершина v (Куда)</th>
-      <th>Вес w (Расстояние)</th>
-      <th style="width:60px;">🗑</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    % for i in range(1, edge_count + 1):
-    <tr>
-      <td><strong>{{i}}</strong></td>
-
-      <td>
-        <input type="text"
-               name="u_{{i}}"
-               class="form-control-custom"
-               value="{{_form.get('u_' + str(i), '')}}"
-               placeholder="1">
-      </td>
-
-      <td>
-        <input type="text"
-               name="v_{{i}}"
-               class="form-control-custom"
-               value="{{_form.get('v_' + str(i), '')}}"
-               placeholder="2">
-      </td>
-
-      <td>
-        <input type="number"
-               name="w_{{i}}"
-               class="form-control-custom"
-               value="{{_form.get('w_' + str(i), '')}}"
-               min="1"
-               placeholder="—">
-      </td>
-
-      <td style="text-align:center;">
-        <button type="button"
-                class="btn-delete-edge"
-                onclick="removeEdgeRow(this)">
-          🗑
-        </button>
-      </td>
-
-    </tr>
-    % end
-  </tbody>
-</table>
+            <table class="edges-file-table" id="matrix-table">
+              <thead>
+                <tr>
+                  <th style="width:10%;">#</th>
+                  <th>Вершина u (Откуда)</th>
+                  <th>Вершина v (Куда)</th>
+                  <th>Вес w (Расстояние)</th>
+                  <th>Удалить</th>
+                </tr>
+              </thead>
+              <tbody>
+                % for i in range(1, edge_count + 1):
+                <tr>
+                  <td><strong>{{i}}</strong></td>
+                  <td><input type="text" name="u_{{i}}" class="form-control-custom"
+                             value="{{_form.get('u_' + str(i), '')}}" placeholder="1"></td>
+                  <td><input type="text" name="v_{{i}}" class="form-control-custom"
+                             value="{{_form.get('v_' + str(i), '')}}" placeholder="2"></td>
+                  <td><input type="number" name="w_{{i}}" class="form-control-custom"
+                             value="{{_form.get('w_' + str(i), '')}}" min="1" placeholder="—"></td>
+                  <td style="text-align:center;">
+                    <button type="button" class="btn-delete-edge" onclick="removeEdgeRow(this)">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6l-1 14H6L5 6"></path>
+                        <path d="M10 11v6M14 11v6"></path>
+                        <path d="M9 6V4h6v2"></path>
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+                % end
+              </tbody>
+            </table>
           % else:
             <p class="placeholder-text placeholder-empty-table">
               Укажите количество вершин N, выберите случайный пресет или загрузите файл.
@@ -237,50 +212,60 @@
           % end
         </div>
 
-        % if defined('debug_info'):
-<div class="alert alert-info" style="margin-top:20px;">
-    <p class="result-p"><strong>Full:</strong> {{_result.get('full_path_str', '')}}</p>
-</div>
-% end
+        <div style="display:flex; gap:10px; margin-top:15px; align-items:center;">
+          <button type="button" id="btn-add-edge" class="btn btn-light btn-sm btn-preset">
+            ➕ Добавить ребро
+          </button>
+        </div>
+
       </div>
 
     </div>
+    <!-- конец двух карточек -->
+
   </form>
 
   <script src="/static/scripts/tsp_edges.js"></script>
-  <!-- конец формы -->
 
-  <!-- Визуализация -->
-  <div style="margin-top:20px;">
-    <div class="card-panel">
+  <!-- ====== Визуализация — на всю ширину ====== -->
+ <div style="margin-top:20px;" id="result-anchor">
       <h2 style="margin-top:0;">Визуализация структуры графа и путей</h2>
       <div class="visual-container" style="min-height:250px;">
         % if _svg:
           <div class="graph-svg-output">{{!_svg}}</div>
         % elif _result:
           <div class="result-text-output">
-            % elif _result:
-  <div class="result-text-output">
-    <h4>Результат расчёта:</h4>
-
-    <p class="result-p">
-      <strong>Оптимальный путь:</strong>
-      <span class="text-highlight-blue" style="font-size:1.25rem;">
-        {{_result.get('path_str', '')}}
-      </span>
-    </p>
-
-    <p class="result-p">
-      <strong>Минимальное время:</strong>
-      <span class="text-highlight-green" style="font-size:1.25rem;">
-        {{_result.get('min_weight', '')}}
-      </span> ед.
-    </p>
-  </div>
-% end
-
+            <h4>Результат расчёта:</h4>
+            <p class="result-p">
+              <strong>Оптимальный путь:</strong>
+              <span class="text-highlight-blue" style="font-size:1.25rem;">
+                {{_result.get('path_str', '')}}
+              </span>
+            </p>
+            <p class="result-p">
+              <strong>Минимальное время:</strong>
+              <span class="text-highlight-green" style="font-size:1.25rem;">
+                {{_result.get('min_weight', '')}}
+              </span> ед.
+            </p>
+          </div>
+        % else:
+          <p class="placeholder-text" style="padding:60px 0;">
+            Заполните поля параметров и рёбер графа для генерации визуальной схемы
+          </p>
+        % end
       </div>
     </div>
+    % _result_id = defined('result_id') and result_id or None
+% if _result and _result_id:
+  <div style="margin-top:15px; text-align:right;">
+    <a href="/tsp/download/{{_result_id}}">
+      <button type="button" class="btn-submit-tsp">
+        💾 Скачать результат (ZIP)
+      </button>
+    </a>
+  </div>
+% end
   </div>
 
 </div>
