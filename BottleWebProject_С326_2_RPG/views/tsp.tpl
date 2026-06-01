@@ -228,8 +228,7 @@
   <script src="/static/scripts/tsp_edges.js"></script>
 
   <!-- ====== Визуализация — на всю ширину ====== -->
-  <div style="margin-top:20px;">
-    <div class="card-panel">
+ <div style="margin-top:20px;" id="result-anchor">
       <h2 style="margin-top:0;">Визуализация структуры графа и путей</h2>
       <div class="visual-container" style="min-height:250px;">
         % if _svg:
@@ -257,6 +256,16 @@
         % end
       </div>
     </div>
+    % _result_id = defined('result_id') and result_id or None
+% if _result and _result_id:
+  <div style="margin-top:15px; text-align:right;">
+    <a href="/tsp/download/{{_result_id}}">
+      <button type="button" class="btn-submit-tsp">
+        💾 Скачать результат (ZIP)
+      </button>
+    </a>
+  </div>
+% end
   </div>
 
 </div>

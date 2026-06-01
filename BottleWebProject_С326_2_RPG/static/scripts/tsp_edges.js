@@ -168,3 +168,10 @@ function renumberRows() {
 
     rowCount = rows.length;
 }
+// Скролл к результату после расчёта
+window.addEventListener('load', function () {
+    const anchor = document.getElementById('result-anchor');
+    if (anchor) {
+        anchor.scrollIntoView({ behavior: 'smooth' });
+    }
+});

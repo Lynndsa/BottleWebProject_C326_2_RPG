@@ -1,10 +1,11 @@
 ﻿# -*- coding: utf-8 -*-
-from bottle import route, run, template, static_file, request
-from tools.tsp_tools import generate_random_graph, log_to_file
+from bottle import route, run, template, static_file, request, response
+from tools.tsp_tools import generate_random_graph, build_zip,log_to_file
 from validators.tsp_validator import parse_input, parse_txt_file
 from visual.tsp_visual import build_svg
 from algorithms.tsp_algorithm import solve_tsp, get_full_path,dijkstra_simple
-
+import pickle
+import os
 
 @route('/favicon.ico')
 def favicon():
@@ -27,7 +28,6 @@ def _tsp_defaults():
 def tsp_get():
     return template('tsp', **_tsp_defaults())
 
-
 @route('/tsp/random', method='POST')
 def tsp_random():
     raw = generate_random_graph()
@@ -39,6 +39,31 @@ def tsp_random():
             form[f'v_{i}'] = parts[1]
             form[f'w_{i}'] = parts[2]
     return template('tsp', **_tsp_defaults(), form=form, errors={})
+
+@route('/tsp/download/<result_id>', method='GET')
+def tsp_download(result_id):
+    path = f'tmp_results/{result_id}.pkl'
+    if not os.path.exists(path):
+        return 'Данные устарели или не найдены'
+
+    with open(path, 'rb') as f:
+        data = pickle.load(f)
+
+    zip_buf = build_zip(
+        graph_data={
+            'graph':       data['graph'],
+            'best_path':   data['best_path'],
+            'full_path':   data['full_path'],
+            'hotel':       data['hotel'],
+            'unreachable': data['unreachable']
+        },
+        form_data={'hotel': data['log']['hotel'], 'targets': data['log']['targets']},
+        result_data={'path': data['log']['path'], 'dist': data['log']['dist']}
+    )
+
+    response.content_type = 'application/zip'
+    response.headers['Content-Disposition'] = 'attachment; filename="tsp_result.zip"'
+    return zip_buf.getvalue()
 
 @route('/tsp', method='POST')
 def tsp_post():
@@ -218,12 +243,30 @@ def tsp_post():
         graph,
         best_path
     )
-    
-    # 7. Запись в файл 
     log_to_file(
-        form_data={'hotel': hotel, 'targets': targets},
-        result_data={'path': full_visual_path, 'dist': min_dist}
-    )
+    form_data={'hotel': hotel, 'targets': targets},
+    result_data={'path': full_visual_path, 'dist': min_dist}
+)
+
+    os.makedirs('tmp_results', exist_ok=True)
+    existing = [f for f in os.listdir('tmp_results') if f.endswith('.pkl')]
+    result_id = str(len(existing) + 1)
+
+    with open(f'tmp_results/{result_id}.pkl', 'wb') as f:
+        pickle.dump({
+            'graph':      graph,
+            'best_path':  best_path,
+            'full_path':  full_visual_path,
+            'hotel':      hotel,
+            'unreachable': None,
+            'log': {
+                'hotel':   hotel,
+                'targets': targets,
+                'path':    full_visual_path,
+                'dist':    min_dist
+            }
+        }, f)
+    
     # 8. Визуализация
 
     svg_html = build_svg(
@@ -244,7 +287,8 @@ def tsp_post():
         form=form,
         errors={},
         result=result,
-        svg_html=svg_html
+        svg_html=svg_html,
+        result_id=result_id
     )
 @route('/dfs', method=['GET', 'POST'])
 def dfs_module():
