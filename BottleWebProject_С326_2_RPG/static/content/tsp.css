@@ -395,7 +395,12 @@
 }
 
 .placeholder-empty-table {
-    padding-top: 80px;
+    width: 100%;
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 .placeholder-padded {
@@ -465,3 +470,18 @@
     color: #94a3b8;
     cursor: not-allowed;
 }
+.btn-delete-edge {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 15px;
+    color: #94a3b8;
+    transition: color 0.15s, background 0.15s;
+}
+
+    .btn-delete-edge:hover {
+        color: #ef4444;
+        background: #fff5f5;
+    }

@@ -1,7 +1,7 @@
-﻿def parse_input(n, edges_text, hotel_k, sites_text):
+﻿def parse_input(n,m, edges_text, hotel_k, sites_text):
     errors = {}
 
-    # 1. Валидация N
+    #  Валидация N
     try:
         n_val = int(n)
         if not (1 <= n_val <= 50):
@@ -11,13 +11,20 @@
         errors['n'] = 'Введите целое число'
         n_val = None
 
-    # 2. Инициализация графа (все ключи — СТРОКИ)
+    #  Инициализация графа (все ключи — СТРОКИ)
     graph = {}
     if n_val:
         for i in range(1, n_val + 1):
             graph[str(i)] = {}
 
-    # 3. Валидация отеля (приводим к строке сразу)
+    # Валидация M
+    try:
+        m_val = int(m)
+        if not (1 <= m_val <= 8):
+            errors['m'] = 'Число объектов от 1 до 8'
+    except (TypeError, ValueError):
+        errors['m'] = 'Введите целое число'
+    # Валидация отеля (приводим к строке сразу)
     hotel = None
     try:
         k_val = int(hotel_k)
@@ -28,7 +35,7 @@
     except (TypeError, ValueError):
         errors['k'] = 'Введите целое число'
 
-    # 4. Парсинг рёбер
+    # Парсинг рёбер
     if edges_text:
         for line_num, line in enumerate(edges_text.strip().splitlines(), 1):
             parts = line.strip().split()
@@ -53,7 +60,7 @@
     else:
         errors['edges'] = 'Введите рёбра'
 
-    # 5. Парсинг достопримечательностей
+    # Парсинг достопримечательностей
     targets = []
     if sites_text:
         try:
@@ -85,10 +92,7 @@ def parse_txt_file(file_content):
         ...
         sites: 2 3 4 ← последняя строка: достопримечательности
 
-    Возвращает:
-        (form_data, errors)
-        form_data — словарь с ключами n, m, k, edges, sites (как в форме)
-        errors    — словарь ошибок (пустой если всё ок)
+
     """
     errors = {}
     form_data = {'n': '', 'm': '', 'k': '', 'edges': '', 'sites': ''}

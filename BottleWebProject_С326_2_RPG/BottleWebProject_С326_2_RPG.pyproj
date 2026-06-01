@@ -42,6 +42,10 @@
     </Compile>
     <Compile Include="app.py" />
     <Compile Include="tools\tsp_tools.py">
+    <Compile Include="tools\dfs_tools.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tools\tsp_tools.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="routes.py" />
@@ -55,6 +59,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="visual\tsp_visual.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="visual\dfs_visual.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -89,6 +96,9 @@
     </Content>
     <Content Include="static\content\site.css" />
     <Content Include="static\content\tsp.css">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="static\content\tx_table.js">
       <SubType>Code</SubType>
     </Content>
     <Content Include="static\fonts\glyphicons-halflings-regular.eot" />
