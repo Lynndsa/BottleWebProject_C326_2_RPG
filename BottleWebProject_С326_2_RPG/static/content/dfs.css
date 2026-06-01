@@ -1641,3 +1641,300 @@ tr.row-invalid td {
     font-family: inherit;
     font-weight: 600;
 }
+/* ── Граф транзакций (pan/zoom контейнер) ── */
+.dfs-graph-wrap {
+    position: relative;
+    width: 100%;
+    background: var(--slate-50);
+    border: 3px dashed var(--slate-300);
+    border-radius: 18px;
+    overflow: hidden;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+}
+
+    .dfs-graph-wrap:active {
+        cursor: grabbing;
+    }
+
+    .dfs-graph-wrap svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+.dfs-controls {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 10;
+}
+
+.dfs-ctrl-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 2px solid var(--slate-300);
+    background: #fff;
+    color: var(--slate-700);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    font-family: inherit;
+}
+
+    .dfs-ctrl-btn:hover {
+        background: var(--sky-100);
+        border-color: var(--sky-500);
+        color: var(--sky-700);
+    }
+
+.dfs-zoom-lbl {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--slate-500);
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    background: #fff;
+    border: 2px solid var(--slate-200);
+    border-radius: 8px;
+    padding: 3px 0;
+}
+
+.dfs-hint {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    font-size: 1.275rem;
+    color: var(--slate-400);
+    pointer-events: none;
+    font-family: inherit;
+    font-weight: 600;
+}
+
+/* ── Интерактивная таблица транзакций ── */
+.tx-editor-wrap {
+    background: #fff;
+    border: 3px solid var(--slate-200);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,23,42,0.05);
+    margin-bottom: 3rem;
+}
+
+.tx-editor-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    padding: 1.65rem 2.25rem;
+    border-bottom: 3px solid var(--slate-100);
+    background: var(--slate-50);
+}
+
+    .tx-editor-toolbar h2 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--slate-900);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+        .tx-editor-toolbar h2 .tx-count-badge {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: var(--sky-100);
+            color: var(--sky-700);
+            border: 2px solid var(--sky-200);
+            border-radius: 9999px;
+            padding: 2px 14px;
+        }
+
+.tx-editor-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.tx-table-scroll {
+    overflow-x: auto;
+}
+
+.tx-edit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.425rem;
+}
+
+    .tx-edit-table thead {
+        background: var(--slate-800);
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+        .tx-edit-table thead th {
+            padding: 1.05rem 1.35rem;
+            text-align: left;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+        }
+
+            .tx-edit-table thead th:first-child {
+                width: 48px;
+                text-align: center;
+                color: var(--slate-400);
+            }
+
+            .tx-edit-table thead th:last-child {
+                width: 52px;
+            }
+
+    .tx-edit-table tbody tr {
+        border-bottom: 1px solid var(--slate-100);
+        transition: background 0.1s;
+    }
+
+        .tx-edit-table tbody tr:hover {
+            background: var(--sky-50);
+        }
+
+            .tx-edit-table tbody tr:hover .tx-btn-delete {
+                opacity: 1;
+            }
+
+    .tx-edit-table td {
+        padding: 0;
+    }
+
+.tx-cell-num {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--slate-400);
+    padding: 0 0.5rem;
+    user-select: none;
+    width: 48px;
+}
+
+/* Редактируемые ячейки */
+[data-field] {
+    display: block;
+    width: 100%;
+    padding: 1.05rem 1.2rem;
+    font-family: 'Courier New', monospace;
+    font-size: 1.425rem;
+    color: var(--slate-800);
+    outline: none;
+    min-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: text;
+    border-right: 2px solid transparent;
+    transition: background 0.1s, border-color 0.1s;
+}
+
+    [data-field]:focus {
+        background: #fff;
+        border-right-color: var(--sky-400);
+        color: var(--slate-900);
+    }
+
+    [data-field]:empty:before {
+        content: attr(data-placeholder);
+        color: var(--slate-300);
+        pointer-events: none;
+    }
+
+    [data-field].tx-cell--error {
+        background: var(--danger-bg);
+        color: var(--danger-dark);
+    }
+
+        [data-field].tx-cell--error:focus {
+            border-right-color: var(--danger);
+        }
+
+[data-field="amount"] {
+    color: var(--sky-700);
+    font-weight: 700;
+}
+
+/* Кнопка удаления строки */
+.tx-btn-delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: 0 auto;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 8px;
+    color: var(--slate-400);
+    font-size: 1.4rem;
+    opacity: 0;
+    transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+    .tx-btn-delete:hover {
+        background: var(--danger-bg);
+        color: var(--danger);
+        opacity: 1;
+    }
+
+/* Кнопка добавить строку */
+.tx-add-row-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 1.05rem 1.65rem;
+    background: var(--slate-50);
+    border: none;
+    border-top: 2px dashed var(--slate-200);
+    color: var(--slate-400);
+    font-size: 1.35rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s;
+    text-align: left;
+}
+
+    .tx-add-row-btn:hover {
+        background: var(--sky-50);
+        color: var(--sky-600);
+        border-color: var(--sky-300);
+    }
+
+/* Состояние disabled у кнопки запуска */
+.btn--primary--disabled,
+.btn--primary:disabled {
+    background: var(--slate-300) !important;
+    color: var(--slate-500) !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}

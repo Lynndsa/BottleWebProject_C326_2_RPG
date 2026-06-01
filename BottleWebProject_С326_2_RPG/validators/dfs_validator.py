@@ -1,28 +1,6 @@
-"""
-dfs_validator.py — валидация входных транзакций из textarea или файла.
-"""
-
 
 def parse_transactions(raw_text: str) -> tuple[list[dict], list[str]]:
-    """
-    Парсит текст транзакций в формате:
-        отправитель получатель сумма временная_метка
-
-    Возвращает:
-        (parsed_rows, errors)
-
-    parsed_rows — список словарей:
-        {
-            'sender':    str,
-            'receiver':  str,
-            'amount':    float,
-            'timestamp': int,
-            'valid':     bool,
-            'error':     str | None,
-        }
-
-    errors — глобальные ошибки (если вообще нет ни одной валидной строки)
-    """
+   
     if not raw_text or not raw_text.strip():
         return [], ['Поле транзакций не может быть пустым.']
 
@@ -107,10 +85,6 @@ def parse_transactions(raw_text: str) -> tuple[list[dict], list[str]]:
 
 
 def validate_params(threshold_str: str, tx_count_str: str, wallet_count_str: str) -> dict[str, str]:
-    """
-    Валидация параметров формы.
-    Возвращает словарь {field: error_message} — пустой, если всё ОК.
-    """
     errors: dict[str, str] = {}
 
     # Порог
@@ -124,24 +98,23 @@ def validate_params(threshold_str: str, tx_count_str: str, wallet_count_str: str
     # Кол-во транзакций
     try:
         c = int(tx_count_str)
-        if not (1 <= c <= 200):
-            errors['tx_count'] = 'Количество транзакций: от 1 до 200.'
+        if not (1 <= c <= 50):
+            errors['tx_count'] = 'Количество транзакций: от 1 до 50.'
     except (ValueError, TypeError):
-        errors['tx_count'] = 'Введите целое число от 1 до 200.'
+        errors['tx_count'] = 'Введите целое число от 1 до 50.'
 
     # Кол-во кошельков
     try:
         w = int(wallet_count_str)
-        if not (2 <= w <= 50):
-            errors['wallet_count'] = 'Количество кошельков: от 2 до 50.'
+        if not (2 <= w <= 20):
+            errors['wallet_count'] = 'Количество кошельков: от 2 до 20.'
     except (ValueError, TypeError):
-        errors['wallet_count'] = 'Введите целое число от 2 до 50.'
+        errors['wallet_count'] = 'Введите целое число от 2 до 20.'
 
     return errors
 
 
 def filter_valid(parsed_rows: list[dict]) -> list[dict]:
-    """Возвращает только валидные строки (готовы к подаче в алгоритм)."""
     return [
         {
             'sender':    r['sender'],

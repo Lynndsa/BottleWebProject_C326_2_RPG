@@ -91,6 +91,9 @@
     <Content Include="static\content\tsp.css">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="static\content\tx_table.js">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="static\fonts\glyphicons-halflings-regular.eot" />
     <Content Include="static\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="static\fonts\glyphicons-halflings-regular.ttf" />

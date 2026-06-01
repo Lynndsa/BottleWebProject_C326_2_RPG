@@ -1,48 +1,7 @@
-"""
-dfs_visual.py — SVG-визуализация графа транзакций с поддержкой
-панорамирования и масштабирования.
-
-Экспортирует две функции:
-
-    render_graph_svg(transactions, suspicious_paths, width, height) -> str
-        Возвращает «голый» inline SVG (без обёртки).
-        Используй, если нужен только SVG-код.
-
-    render_graph_html(transactions, suspicious_paths, width, height,
-                      container_height) -> str
-        Возвращает готовый HTML-блок: SVG внутри div-контейнера
-        с drag-панорамированием, колёсным зумом, пинч-зумом
-        и кнопками управления.
-        Вставляй напрямую в шаблон Bottle через {{!graph_html}}.
-"""
 
 import math
 
-
-# ---------------------------------------------------------------------------
-# Цветовая палитра
-# ---------------------------------------------------------------------------
-
-COLOR_SUS_FILL   = '#fff5f5'
-COLOR_SUS_STROKE = '#ef4444'
-COLOR_SUS_TEXT   = '#b91c1c'
-COLOR_SUS_EDGE   = '#ef4444'
-
-COLOR_NORM_FILL   = '#f0f9ff'
-COLOR_NORM_STROKE = '#38bdf8'
-COLOR_NORM_TEXT   = '#0c4a6e'
-COLOR_NORM_EDGE   = '#0ea5e9'
-
-COLOR_START_FILL  = '#0f172a'
-COLOR_START_TEXT  = '#ffffff'
-
-COLOR_BG   = '#f8fafc'
-COLOR_GRID = '#e2e8f0'
-
-
-# ---------------------------------------------------------------------------
 # Вычисление координат вершин
-# ---------------------------------------------------------------------------
 
 def _layout_nodes(
     nodes: list[str],
@@ -90,10 +49,7 @@ def _layout_nodes(
 
     return pos
 
-
-# ---------------------------------------------------------------------------
 # SVG-примитивы
-# ---------------------------------------------------------------------------
 
 def _svg_marker(marker_id: str, color: str) -> str:
     return (
@@ -187,10 +143,7 @@ def _fmt_amount(val) -> str:
     except Exception:
         return str(val)
 
-
-# ---------------------------------------------------------------------------
 # Легенда и заглушка
-# ---------------------------------------------------------------------------
 
 def _svg_legend(width: int, height: int) -> str:
     lw, lh = 190, 60
@@ -221,10 +174,7 @@ def _empty_svg(width: int, height: int) -> str:
         f'</svg>'
     )
 
-
-# ---------------------------------------------------------------------------
 # Основная функция: только SVG
-# ---------------------------------------------------------------------------
 
 def render_graph_svg(
     transactions: list[dict],
@@ -232,19 +182,7 @@ def render_graph_svg(
     width: int = 680,
     height: int = 460,
 ) -> str:
-    """
-    Строит inline SVG-граф транзакций.
 
-    Parameters
-    ----------
-    transactions      : список {'sender', 'receiver', 'amount', 'timestamp'}
-    suspicious_paths  : список PathResult из dfs_algorithm
-    width, height     : размеры SVG в пикселях
-
-    Returns
-    -------
-    Строка с <svg ...>…</svg>.
-    """
     if not transactions:
         return _empty_svg(width, height)
 
@@ -331,10 +269,7 @@ def render_graph_svg(
     return svg
 
 
-# ---------------------------------------------------------------------------
 # Обёртка: SVG + HTML-контейнер с pan/zoom
-# ---------------------------------------------------------------------------
-
 _JS = """
 <script>
 (function() {
@@ -470,27 +405,6 @@ def render_graph_html(
     height: int = 460,
     container_height: int = 480,
 ) -> str:
-    """
-    Возвращает полный HTML-блок: SVG + CSS + JS с pan/zoom.
-
-    Parameters
-    ----------
-    transactions      : список {'sender', 'receiver', 'amount', 'timestamp'}
-    suspicious_paths  : список PathResult из dfs_algorithm
-    width, height     : внутренние размеры SVG-холста (влияет на детализацию)
-    container_height  : высота видимого контейнера в px (по умолчанию 480)
-
-    Returns
-    -------
-    HTML-строка для вставки через {{!graph_html}} в шаблон Bottle.
-
-    Управление:
-      • Drag мышью       — панорамирование
-      • Колёсико         — масштабирование по курсору
-      • Двойной клик     — сброс вида (100 %, позиция 0 0)
-      • Кнопки +/−/⌂     — зум по центру / сброс
-      • Pinch (тач)      — масштабирование двумя пальцами
-    """
     # Уникальные ID, чтобы несколько графов на одной странице не конфликтовали
     import hashlib, os
     uid = hashlib.md5(os.urandom(8)).hexdigest()[:6]
@@ -535,3 +449,21 @@ def render_graph_html(
         + js
     )
     return html
+
+# Цветовая палитра
+
+COLOR_SUS_FILL   = '#fff5f5'
+COLOR_SUS_STROKE = '#ef4444'
+COLOR_SUS_TEXT   = '#b91c1c'
+COLOR_SUS_EDGE   = '#ef4444'
+
+COLOR_NORM_FILL   = '#f0f9ff'
+COLOR_NORM_STROKE = '#38bdf8'
+COLOR_NORM_TEXT   = '#0c4a6e'
+COLOR_NORM_EDGE   = '#0ea5e9'
+
+COLOR_START_FILL  = '#0f172a'
+COLOR_START_TEXT  = '#ffffff'
+
+COLOR_BG   = '#f8fafc'
+COLOR_GRID = '#e2e8f0'
