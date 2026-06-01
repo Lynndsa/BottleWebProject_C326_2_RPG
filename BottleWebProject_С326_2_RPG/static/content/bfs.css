@@ -603,3 +603,28 @@
         flex-direction: column;
     }
 }
+/* Стили для детального лога */
+.simulation-log::-webkit-scrollbar {
+    width: 8px;
+}
+
+.simulation-log::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.simulation-log::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+    .simulation-log::-webkit-scrollbar-thumb:hover {
+        background: #777;
+    }
+
+.simulation-log table {
+    font-family: 'Consolas', monospace;
+}
+
+.simulation-log td, .simulation-log th {
+    padding: 5px 8px;
+}

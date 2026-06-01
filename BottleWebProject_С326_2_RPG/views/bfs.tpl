@@ -1,4 +1,4 @@
-% rebase('layout.tpl', title='Моделирование распространения вируса', year=year)
+% rebase('layout.tpl', title=title, year=year)
 
 <link rel="stylesheet" type="text/css" href="/static/content/menu.css" />
 <link rel="stylesheet" type="text/css" href="/static/content/bfs.css" />
@@ -252,42 +252,56 @@
       
       <div class="row" style="display:flex; flex-wrap:wrap; gap:20px;">
         
-        % if _result:
-        <div style="flex:1 1 300px;">
-          <div class="result-text-output" style="padding:15px; background:#f8f9fa; border-radius:4px; border-left:4px solid #4caf50;">
-            <h4>Статистические данные Монте-Карло:</h4>
-            <hr style="margin:10px 0; border: 0; border-top: 1px solid #e2e8f0;">
-            <p class="result-p" style="margin-bottom:8px;">
-              <strong>Теоретическая достижимость (X):</strong> 
-              <span class="text-highlight-blue" style="font-weight:bold;">{{_result.get('connectivity_max', 0)}}</span> из {{val_n}} узлов.
-            </p>
-            <p class="result-p" style="margin-bottom:8px;">
-              <strong>Длительность вспышки (V_mean):</strong> 
-              <span class="text-highlight-blue" style="font-weight:bold; font-size:1.1rem;">{{_result.get('v_mean', '')}}</span> шагов времени.
-            </p>
-            <p class="result-p" style="margin-bottom:0;">
-              <strong>Итоговый уровень заражения (P_final):</strong> 
-              <span class="text-highlight-green" style="font-weight:bold; font-size:1.2rem;">{{_result.get('p_final', '')}}%</span> населения.
-            </p>
-          </div>
-          
-          % if _result.get('chart_base64'):
-          <div class="chart-container" style="margin-top:15px; text-align:center;">
-            <h5>График интенсивности заражения по шагам</h5>
-            <img src="data:image/png;base64,{{_result['chart_base64']}}" alt="Динамика BFS симуляции" style="max-width:100%; border-radius:4px; border:1px solid #ddd;">
-          </div>
-          % end
+       % if _result:
+<div style="flex:1 1 300px;">
+    <div class="result-text-output" style="padding:15px; background:#f8f9fa; border-radius:4px; border-left:4px solid #4caf50;">
+        <h4>Статистические данные Монте-Карло:</h4>
+        <hr style="margin:10px 0; border: 0; border-top: 1px solid #e2e8f0;">
+        
+        <p><strong>📊 Теоретическая достижимость (X):</strong> 
+            <span style="font-weight:bold;">{{_result.get('connectivity_max', 0)}}</span> из {{val_n if val_n else '?'}} узлов.</p>
+        
+        <p><strong>⏱️ Средняя длительность вспышки:</strong> 
+            <span style="font-weight:bold;">{{_result.get('v_mean', '')}}</span> шагов 
+            <span style="font-size:0.85rem; color:#666;">(min: {{_result.get('min_duration', '?')}}, max: {{_result.get('max_duration', '?')}})</span></p>
+        
+        <p><strong>🦠 Средний уровень заражения:</strong> 
+            <span style="font-weight:bold; font-size:1.2rem;">{{_result.get('p_final', '')}}%</span> населения 
+            <span style="font-size:0.85rem; color:#666;">(≈ {{_result.get('avg_infected_count', '?')}} узлов из {{val_n if val_n else '?'}})</span></p>
+        
+        <hr style="margin:10px 0; border: 0; border-top: 1px dashed #ccc;">
+        
+        <p><strong>📈 Дополнительная статистика ({{_result.get('iterations', 100)}} итераций):</strong></p>
+        <ul style="margin: 5px 0 0 20px; font-size: 0.9rem;">
+            <li>Максимум зараженных: <strong>{{_result.get('max_infected', 0)}}</strong> узлов ({{"%.1f" % ((_result.get('max_infected', 0) / int(val_n) * 100) if val_n else 0)}}%)</li>
+            <li>Минимум зараженных: <strong>{{_result.get('min_infected', 0)}}</strong> узлов</li>
+            <li>Наиболее частый исход: <strong>{{_result.get('most_common_infected', [])}}</strong> узлов 
+                ({{_result.get('most_common_percent', 0)}}% итераций)</li>
+        </ul>
+        
+        <div style="margin-top: 10px; padding: 8px; background: #e8f5e9; border-radius: 4px; font-size: 0.85rem;">
+            <strong>ℹ️ Пояснение:</strong> Среднее значение ({{_result.get('p_final', '')}}%) 
+            отличается от результата конкретной итерации (например, заражены узлы 
+            <strong>{{_result.get('final_infected_example', [])}}</strong> = 
+            {{ ((len(_result.get('final_infected_example', [])) / int(val_n) * 100) if val_n else 0)}}%), 
+            так как показано <strong>усреднение по всем {{_result.get('iterations', 100)}} итерациям</strong> Монте-Карло.
         </div>
-        % end
+    </div>
+    
+    % if _result.get('chart_base64'):
+    <div style="margin-top:15px; text-align:center;">
+        <h5>График динамики заражения (усредненный)</h5>
+        <img src="data:image/png;base64,{{_result['chart_base64']}}" alt="Динамика" style="max-width:100%; border-radius:4px; border:1px solid #ddd;">
+    </div>
+    % end
+</div>
+% end
 
         % if _svg:
         <div style="flex:1.3 1 400px; display:flex; flex-direction:column;">
           <div class="visual-container" style="border:1px solid #e0e0e0; border-radius:4px; padding:10px; background:#fff; flex:1; display:flex; align-items:center; justify-content:center;">
             <div class="graph-svg-output" style="width:100%; text-align:center;">{{!_svg}}</div>
           </div>
-          <p class="theory-caption" style="text-align:center; margin-top:5px; font-size:0.85rem; color:#666;">
-            <em>Цветовая разметка: красные узлы — первичные очаги V_inf, насыщенность градиента рёбер отражает частоту прохождения вирусного фронта.</em>
-          </p>
         </div>
         % end
 

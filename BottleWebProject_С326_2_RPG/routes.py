@@ -1,9 +1,9 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from bottle import route, run, template, static_file, request
 from tools.tsp_tools import generate_random_graph, log_to_file
 from validators.tsp_validator import parse_input, parse_txt_file
 from visual.tsp_visual import build_svg
-from algorithms.tsp_algorithm import solve_tsp, get_full_path,dijkstra_simple
+from algorithms.tsp_algorithm import solve_tsp, get_full_path, dijkstra_simple
 import json
 from tools.tsp_tools import generate_random_graph
 from bottle import route, view, static_file, run, template, request, response
@@ -11,6 +11,10 @@ from tools.dfs_tools    import generate_transactions, transactions_to_text
 from validators.dfs_validator import parse_transactions, filter_valid, validate_params
 from algorithms.dfs_algorithm import find_longest_path
 from visual.dfs_visual    import render_graph_svg, render_graph_html
+from algorithms.bfs_algorithm import ProbabilisticBFS
+from validators.bfs_validator import validate_bfs_params
+from tools.bfs_tools import create_graph_from_edges, generate_graph_svg, generate_infection_chart
+import random
 
 
 
@@ -23,7 +27,6 @@ def index():
     return template('index', title='Описание задач', year=2026, request_path=request.path)
 
 # --- JSON-эндпоинт: генерация случайных транзакций ---
-# Вызывается fetch()-ом со страницы, возвращает строки для таблицы
 @route('/dfs/random-json', method=['POST'])
 def dfs_random_json():
     response.content_type = 'application/json'
@@ -49,6 +52,14 @@ def dfs_random_json():
     ]
     return json.dumps({'rows': rows})
 
+def _read_file(file_obj):
+    """Вспомогательная функция для чтения файла"""
+    if not file_obj:
+        return ''
+    try:
+        return file_obj.file.read().decode('utf-8')
+    except Exception:
+        return ''
 
 # --- Основной роут DFS ---
 @route('/dfs', method=['GET', 'POST'])
@@ -64,7 +75,7 @@ def dfs_module():
         input_mode='manual',
         errors={},
         error=None,
-        graph_html=None,   # <-- было graph_svg, теперь graph_html
+        graph_html=None,
         result=None,
         parsed_file=[],
     )
@@ -92,8 +103,6 @@ def dfs_module():
     tx_count     = int(tx_count_s)
     wallet_count = int(wallet_cnt_s)
 
-    # random больше не обрабатывается здесь — он идёт через /dfs/random-json
-    # но на случай если JS отключён — оставляем fallback
     if mode == 'random':
         txs = generate_transactions(tx_count=tx_count, wallet_count=wallet_count)
         raw = transactions_to_text(txs)
@@ -126,9 +135,7 @@ def dfs_module():
     defaults['result']     = result
 
     return template('dfs', **defaults)
-@route('/bfs')
-def bfs_module():
-    return template('bfs', title='Модуль BFS', year=2026, request_path=request.path)
+
 
 
 def _tsp_defaults():
@@ -334,6 +341,159 @@ def tsp_post():
 @route('/static/<filepath:path>')
 def server_static(filepath):
     return static_file(filepath, root='./static')
+
+
+@route('/bfs', method=['GET', 'POST'])
+def bfs_simulation():
+    """Главная страница симуляции BFS"""
+    
+    base_vars = {
+        'title': 'Модуль BFS',
+        'year': 2026,
+        'request_path': request.path
+    }
+    
+    if request.method == 'GET':
+        return template('bfs', **base_vars, form={}, errors={}, result=None, svg_html=None)
+    
+    # Получаем данные из формы
+    n = request.forms.get('n', '')
+    m = request.forms.get('m', '')
+    p = request.forms.get('p', '')
+    iterations = request.forms.get('iter', '')
+    v_inf_str = request.forms.get('v_inf', '')
+    
+    # Собираем ребра
+    edges = []
+    for key, value in request.forms.items():
+        if key.startswith('u_'):
+            index = key.split('_')[1]
+            v_key = f'v_{index}'
+            if v_key in request.forms:
+                u_val = value.strip()
+                v_val = request.forms[v_key].strip()
+                if u_val and v_val:
+                    edges.append((u_val, v_val))
+    
+    # Валидация параметров (предполагается, что функция validate_bfs_params определена)
+    is_valid, errors, infected_nodes = validate_bfs_params(n, m, p, iterations, v_inf_str, edges)
+    
+    if not is_valid:
+        return template('bfs', **base_vars, form=request.forms, errors=errors, result=None, svg_html=None)
+    
+    try:
+        n_int = int(n)
+        p_float = float(p)
+        iter_int = int(iterations)
+        
+        # Создаем граф (гарантирует наличие узлов от 1 до n_int)
+        graph = create_graph_from_edges(edges, n_int)
+        
+        # Строгая фильтрация очагов: они должны быть строго в диапазоне существующих узлов графа
+        valid_infected = [int(node) for node in infected_nodes if int(node) in graph]
+        
+        if not valid_infected:
+            errors['global'] = f'Начальные очаги {v_inf_str} выходят за пределы количества узлов графа (1-{n_int})'
+            return template('bfs', **base_vars, form=request.forms, errors=errors, result=None, svg_html=None)
+        
+        # Запускаем симуляцию Монте-Карло
+        bfs_sim = ProbabilisticBFS(graph, valid_infected, p_float, iter_int)
+        results = bfs_sim.run_monte_carlo()
+        
+        # Получаем корректно выровненную динамику
+        progression = bfs_sim.get_infection_progression_avg()
+        
+        # Генерируем медиа-контент
+        chart_base64 = generate_infection_chart(progression)
+        svg_html = generate_graph_svg(graph, results['infection_frequency'], valid_infected)
+        
+        result_data = {
+            'connectivity_max': results['theoretical_max'],
+            'v_mean': f"{results['avg_duration']:.2f}",
+            'p_final': f"{results['infection_rate']:.1f}",
+            'chart_base64': chart_base64,
+            'most_common_infected': results.get('most_common_infected', []),
+            'most_common_percent': f"{results.get('most_common_percent', 0):.1f}",
+            'iterations': iter_int,
+            'avg_infected_count': f"{results['avg_infected']:.1f}",
+            'max_infected': results['max_infected'],
+            'min_infected': results['min_infected']
+        }
+        
+        return template('bfs',
+                       **base_vars,
+                       form=request.forms,
+                       result=result_data,
+                       svg_html=svg_html,
+                       errors=errors)
+                       
+    except Exception as e:
+        errors['global'] = f'Ошибка при выполнении симуляции: {str(e)}'
+        return template('bfs', **base_vars, form=request.forms, errors=errors, result=None, svg_html=None)
+
+
+@route('/bfs/random', method='POST')
+def generate_random_network():
+    """Генерирует случайную сеть и подготавливает данные для формы ввода"""
+    
+    base_vars = {
+        'title': 'Модуль BFS',
+        'year': 2026,
+        'request_path': request.path
+    }
+    
+    n_str = request.forms.get('n', '').strip()
+    m_str = request.forms.get('m', '').strip()
+    
+    if not n_str: n_str = '10'
+    if not m_str: m_str = '12'  # Изменено на 12 для большей связности по умолчанию
+    
+    try:
+        n_int = int(n_str)
+        m_int = int(m_str)
+        
+        # Ограничения безопасности для веб-интерфейса
+        n_int = max(2, min(50, n_int))
+        m_int = max(1, min(100, m_int))
+        
+        edges = []
+        edge_set = set()
+        
+        # Генерация уникальных случайных ребер
+        max_possible_edges = (n_int * (n_int - 1)) // 2
+        actual_m = min(m_int, max_possible_edges)
+        
+        while len(edges) < actual_m:
+            u = random.randint(1, n_int)
+            v = random.randint(1, n_int)
+            if u != v and (u, v) not in edge_set and (v, u) not in edge_set:
+                edges.append((str(u), str(v)))
+                edge_set.add((u, v))
+        
+        # Формируем плоский словарь данных, имитирующий заполненную форму
+        form_data = {
+            'n': str(n_int),
+            'm': str(len(edges)),
+            'p': request.forms.get('p', '0.5').strip() or '0.5',
+            'iter': request.forms.get('iter', '100').strip() or '100'
+        }
+        
+        # Генерируем случайный очаг, входящий в новый диапазон узлов
+        form_data['v_inf'] = str(random.randint(1, n_int))
+        
+        # Записываем сгенерированные ребра в формате u_1, v_1, u_2...
+        for i, (u, v) in enumerate(edges, 1):
+            form_data[f'u_{i}'] = u
+            form_data[f'v_{i}'] = v
+            
+        return template('bfs', **base_vars, form=form_data, errors={}, result=None, svg_html=None)
+        
+    except ValueError:
+        errs = {'global': 'Ошибка генерации сети: введите корректные целые числа для N и M.'}
+        return template('bfs', **base_vars, form=request.forms, errors=errs, result=None, svg_html=None)
+    except Exception as e:
+        errs = {'global': f'Ошибка генерации сети: {str(e)}'}
+        return template('bfs', **base_vars, form=request.forms, errors=errs, result=None, svg_html=None)
 
 @route('/about')
 def about():

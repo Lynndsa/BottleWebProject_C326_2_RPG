@@ -41,7 +41,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="app.py" />
-    <Compile Include="tools\tsp_tools.py">
+    <Compile Include="tools\tsp_tools.py"/>
     <Compile Include="tools\dfs_tools.py">
       <SubType>Code</SubType>
     </Compile>
