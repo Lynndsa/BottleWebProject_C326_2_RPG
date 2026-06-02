@@ -5,10 +5,10 @@
 
 <div class="container-tsp">
 
-% _form        = defined('form')     and form     or {}
-% _errors      = defined('errors')   and errors   or {}
-% _result      = defined('result')   and result   or None
-% _svg         = defined('svg_html') and svg_html or None
+% _form   = get('form',     {})
+% _errors = get('errors',   {})
+% _svg    = get('svg_html', None)
+% _result = get('result', None)
 
 % val_n     = _form.get('n',     '')
 % val_m     = _form.get('m',     '')
@@ -25,7 +25,7 @@
 
   <!-- ====== Теория ====== -->
   <div class="card-panel theory-card-wrapper" style="margin-bottom: 25px;">
-    <details class="theory-accordion-clean" {{'open' if not _result else ''}}>
+<details class="theory-accordion-clean">
       <summary>📖 Справка: Теория и пошаговый разбор алгоритма TSP</summary>
       <div class="theory-content-white">
 
@@ -119,19 +119,27 @@
               <label class="form-label-custom">Вершины N</label>
               <input type="number" name="n" id="input-n"
                      class="form-control form-control-custom {{cls_n}}"
-                     value="{{val_n}}" placeholder="10" min="1" max="50">
+                     value="{{val_n}}" placeholder="10" min="1" max="20">
             </div>
             <div style="flex:1; min-width:0;">
               <label class="form-label-custom">Объекты M</label>
-              <input type="number" name="m"
-                     class="form-control form-control-custom {{cls_m}}"
-                     value="{{val_m}}" placeholder="4" min="1" max="8">
+<input type="number"
+       name="m"
+       class="form-control form-control-custom {{cls_m}}"
+       value="{{val_m}}"
+       placeholder="4"
+       min="1">
             </div>
             <div style="flex:1; min-width:0;">
               <label class="form-label-custom">Отель K</label>
-              <input type="number" name="k"
-                     class="form-control form-control-custom {{cls_k}}"
-                     value="{{val_k}}" placeholder="1">
+    <input type="number"
+       name="k"
+       id="input-k"
+       class="form-control form-control-custom {{cls_k}}"
+       value="{{val_k}}"
+       placeholder="1"
+       min="1"
+       max="{{val_n if val_n else 20}}">
             </div>
           </div>
 
@@ -166,7 +174,7 @@
         % end
 
         <div class="table-responsive" id="matrix-wrapper" style="max-height:520px; overflow-y:auto;">
-          % if val_n and val_n.isdigit() and int(val_n) > 0:
+          % if val_n and val_n.isdigit() and int(val_n) > 0 and int(val_n) < 20:
             % edge_count = len([key for key in _form.keys() if key.startswith('u_')])
             % if edge_count == 0:
               % edge_count = int(val_n)
@@ -229,10 +237,20 @@
 
   <!-- ====== Визуализация — на всю ширину ====== -->
  <div style="margin-top:20px;" id="result-anchor">
-      <h2 style="margin-top:0;">Визуализация структуры графа и путей</h2>
-      <div class="visual-container" style="min-height:250px;">
-        % if _svg:
-          <div class="graph-svg-output">{{!_svg}}</div>
+  <div class="card-panel">
+    <h2 style="margin-top:0;">Визуализация структуры графа и путей</h2>
+      <div class="visual-container" style="min-height:400px;">
+% if _svg:
+  <div id="tsp-wrap" class="graph-svg-output" 
+       style="overflow:hidden; position:relative; width:100%; height:500px; cursor:grab;">
+    {{!_svg}}
+    <div style="position:absolute; top:10px; right:10px; display:flex; gap:5px;">
+      <button id="tsp-btn-in"  class="btn btn-light btn-sm">+</button>
+      <button id="tsp-btn-out" class="btn btn-light btn-sm">−</button>
+      <button id="tsp-btn-rst" class="btn btn-light btn-sm">⟳</button>
+      <span id="tsp-lbl" style="font-size:12px; line-height:28px;">100%</span>
+    </div>
+  </div>
         % elif _result:
           <div class="result-text-output">
             <h4>Результат расчёта:</h4>
@@ -256,7 +274,7 @@
         % end
       </div>
     </div>
-    % _result_id = defined('result_id') and result_id or None
+% _result_id = get('result_id', None)
 % if _result and _result_id:
   <div style="margin-top:15px; text-align:right;">
     <a href="/tsp/download/{{_result_id}}">
@@ -267,5 +285,5 @@
   </div>
 % end
   </div>
-
+    </div>  
 </div>
