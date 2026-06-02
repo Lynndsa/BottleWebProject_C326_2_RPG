@@ -6,6 +6,7 @@ import io
 from flask import send_file
 from visual.tsp_visual import _build_fig
 import matplotlib.pyplot as plt
+
 # Генерирует случайный гарантированно связный граф для тестирования алгоритма TSP.
 def generate_random_graph(n=None, m=None):    
     #  выбираем случайно от 5 до 20

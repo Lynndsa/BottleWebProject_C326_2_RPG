@@ -30,7 +30,7 @@
     <DebugSymbols>true</DebugSymbols>
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
-<ItemGroup>
+  <ItemGroup>
     <Compile Include="algorithms\bfs_algorithm.py">
       <SubType>Code</SubType>
     </Compile>
@@ -41,6 +41,15 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="app.py" />
+    <Compile Include="test\test_bfs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_dfs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_tsp.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tools\dfs_tools.py">
       <SubType>Code</SubType>
     </Compile>
@@ -66,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="algorithms\" />
+    <Folder Include="test\" />
     <Folder Include="visual\" />
     <Folder Include="tools\" />
     <Folder Include="static\content\image\" />

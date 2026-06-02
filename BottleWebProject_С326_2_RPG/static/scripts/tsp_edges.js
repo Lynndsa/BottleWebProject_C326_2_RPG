@@ -196,8 +196,6 @@ function renumberRows() {
 }
 
 
-// ====== ВАЛИДАЦИЯ ФОРМЫ (М, К, ДОСТОПРИМЕЧАТЕЛЬНОСТИ) ======
-
 // Валидация поля количества объектов M
 function validateM(nInput, mInput) {
     const n = parseInt(nInput.value);

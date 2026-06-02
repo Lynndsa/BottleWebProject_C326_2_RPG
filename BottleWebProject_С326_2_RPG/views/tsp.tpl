@@ -198,7 +198,7 @@
                   <td><input type="text" name="v_{{i}}" class="form-control-custom"
                              value="{{_form.get('v_' + str(i), '')}}" placeholder="2"></td>
                   <td><input type="number" name="w_{{i}}" class="form-control-custom"
-                             value="{{_form.get('w_' + str(i), '')}}" min="1" placeholder="—"></td>
+                             value="{{_form.get('w_' + str(i), '')}}" min="1" max = "20"  placeholder="—"></td>
                   <td style="text-align:center;">
                     <button type="button" class="btn-delete-edge" onclick="removeEdgeRow(this)">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
