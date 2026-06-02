@@ -363,3 +363,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /BottleWebProject_С326_2_RPG/env1
+/BottleWebProject_С326_2_RPG/tmp_results/10.pkl
+/BottleWebProject_С326_2_RPG/tsp_history.json
