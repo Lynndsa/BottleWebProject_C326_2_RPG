@@ -1,30 +1,35 @@
 # -*- coding: utf-8 -*-
-from bottle import route, run, template, static_file, request
+import json
+import random
+import re
+from bottle import route, post, run, template, static_file, request, response
+
+# Импорты модулей проекта
 from tools.tsp_tools import generate_random_graph, log_to_file
 from validators.tsp_validator import parse_input, parse_txt_file
 from visual.tsp_visual import build_svg
 from algorithms.tsp_algorithm import solve_tsp, get_full_path, dijkstra_simple
-import json
-from tools.tsp_tools import generate_random_graph
-from bottle import route, view, static_file, run, template, request, response
-from tools.dfs_tools    import generate_transactions, transactions_to_text
+
+from tools.dfs_tools import generate_transactions, transactions_to_text
 from validators.dfs_validator import parse_transactions, filter_valid, validate_params
 from algorithms.dfs_algorithm import find_longest_path
-from visual.dfs_visual    import render_graph_svg, render_graph_html
+from visual.dfs_visual import render_graph_svg, render_graph_html
+
 from algorithms.bfs_algorithm import ProbabilisticBFS
 from validators.bfs_validator import validate_bfs_params
-from tools.bfs_tools import create_graph_from_edges, generate_graph_svg, generate_infection_chart
-import random
-
+from visual.bfs_visual import create_graph_from_edges, generate_graph_svg, generate_infection_chart
+from tools.bfs_tools import parse_bfs_config_file, generate_random_bfs_network
 
 
 @route('/favicon.ico')
 def favicon():
     return static_file('favicon.ico', root='./static')
 
+
 @route('/')
 def index():
     return template('index', title='Описание задач', year=2026, request_path=request.path)
+
 
 # --- JSON-эндпоинт: генерация случайных транзакций ---
 @route('/dfs/random-json', method=['POST'])
@@ -52,14 +57,15 @@ def dfs_random_json():
     ]
     return json.dumps({'rows': rows})
 
+
 def _read_file(file_obj):
-    """Вспомогательная функция для чтения файла"""
     if not file_obj:
         return ''
     try:
         return file_obj.file.read().decode('utf-8')
     except Exception:
         return ''
+
 
 # --- Основной роут DFS ---
 @route('/dfs', method=['GET', 'POST'])
@@ -99,8 +105,8 @@ def dfs_module():
         defaults['transactions'] = request.forms.get('transactions', '')
         return template('dfs', **defaults)
 
-    threshold    = int(threshold_s)
-    tx_count     = int(tx_count_s)
+    threshold = int(threshold_s)
+    tx_count = int(tx_count_s)
     wallet_count = int(wallet_cnt_s)
 
     if mode == 'random':
@@ -128,14 +134,12 @@ def dfs_module():
         defaults['errors'] = {'transactions': 'Нет корректных транзакций для анализа.'}
         return template('dfs', **defaults)
 
-    result     = find_longest_path(valid_txs, threshold=threshold)
-    graph_html = render_graph_html(valid_txs, suspicious_paths=result['paths'],
-                                   container_height=520)
+    result = find_longest_path(valid_txs, threshold=threshold)
+    graph_html = render_graph_html(valid_txs, suspicious_paths=result['paths'], container_height=520)
     defaults['graph_html'] = graph_html
     defaults['result']     = result
 
     return template('dfs', **defaults)
-
 
 
 def _tsp_defaults():
@@ -149,30 +153,17 @@ def tsp_get():
 
 @route('/tsp', method='POST')
 def tsp_post():
-
-    # 1. Загрузка из TXT
     upload = request.files.get('txt_file')
 
     if upload and upload.filename:
-
         try:
             content = upload.file.read().decode('utf-8')
         except Exception:
-            return template(
-                'tsp',
-                **_tsp_defaults(),
-                errors={'global': 'Не удалось прочитать файл'}
-            )
+            return template('tsp', **_tsp_defaults(), errors={'global': 'Не удалось прочитать файл'})
 
         form_data, errors = parse_txt_file(content)
-
         if errors:
-            return template(
-                'tsp',
-                **_tsp_defaults(),
-                form=form_data,
-                errors=errors
-            )
+            return template('tsp', **_tsp_defaults(), form=form_data, errors=errors)
 
         form = {
             'n': form_data['n'],
@@ -182,322 +173,287 @@ def tsp_post():
         }
 
         for i, line in enumerate(form_data['edges'].splitlines(), 1):
-
             parts = line.split()
-
             if len(parts) == 3:
                 form[f'u_{i}'] = parts[0]
                 form[f'v_{i}'] = parts[1]
                 form[f'w_{i}'] = parts[2]
 
-        return template(
-            'tsp',
-            **_tsp_defaults(),
-            form=form,
-            errors={}
-        )
+        return template('tsp', **_tsp_defaults(), form=form, errors={})
 
-    # 2. Ручной ввод
     n_raw = request.forms.get('n', '').strip()
     m = request.forms.get('m', '').strip()
     k = request.forms.get('k', '').strip()
     sites = request.forms.get('sites', '').strip()
 
     edges_lines = []
-
-    form = {
-        'n': n_raw,
-        'm': m,
-        'k': k,
-        'sites': sites
-    }
+    form = {'n': n_raw, 'm': m, 'k': k, 'sites': sites}
 
     i = 1
-
     while True:
-
         u = request.forms.get(f'u_{i}', '').strip()
         v = request.forms.get(f'v_{i}', '').strip()
         w = request.forms.get(f'w_{i}', '').strip()
 
         if u == '' and v == '' and w == '':
-
-            if not any(
-                request.forms.get(f'u_{j}')
-                for j in range(i + 1, i + 3)
-            ):
+            if not any(request.forms.get(f'u_{j}') for j in range(i + 1, i + 3)):
                 break
-
         else:
-
             form[f'u_{i}'] = u
             form[f'v_{i}'] = v
             form[f'w_{i}'] = w
-
             if u and v and w:
                 edges_lines.append(f'{u} {v} {w}')
-
         i += 1
-
         if i > 500:
             break
 
     edges_text = '\n'.join(edges_lines)
-
-    # 3. Валидация
-    graph, hotel, targets, errors = parse_input(
-        n_raw,
-        edges_text,
-        k,
-        sites
-    )
+    graph, hotel, targets, errors = parse_input(n_raw, edges_text, k, sites)
 
     if errors:
-        return template(
-            'tsp',
-            **_tsp_defaults(),
-            form=form,
-            errors=errors
-        )
+        return template('tsp', **_tsp_defaults(), form=form, errors=errors)
 
-    # 4. Проверка связности
     dists = dijkstra_simple(graph, hotel)
-
-    unreachable = [
-        t for t in targets
-        if dists.get(t, float('inf')) == float('inf')
-    ]
+    unreachable = [t for t in targets if dists.get(t, float('inf')) == float('inf')]
 
     if unreachable:
+        svg_html = build_svg(graph, best_path=None, full_path=None, hotel=hotel)
+        return template('tsp', **_tsp_defaults(), form=form, svg_html=svg_html, errors={'global': f'Цели {unreachable} недостижимы из отеля {hotel}!'})
 
-        svg_html = build_svg(
-            graph,
-            best_path=None,
-            full_path=None,
-            hotel=hotel
-        )
-
-        return template(
-            'tsp',
-            **_tsp_defaults(),
-            form=form,
-            svg_html=svg_html,
-            errors={
-                'global':
-                f'Цели {unreachable} недостижимы из отеля {hotel}!'
-            }
-        )
-
-    # 5. Решение TSP
-    best_path, min_dist = solve_tsp(
-        graph,
-        hotel,
-        targets
-    )
-
+    best_path, min_dist = solve_tsp(graph, hotel, targets)
     if best_path is None:
+        return template('tsp', **_tsp_defaults(), form=form, errors={'global': 'Маршрут не найден'})
 
-        return template(
-            'tsp',
-            **_tsp_defaults(),
-            form=form,
-            errors={'global': 'Маршрут не найден'}
-        )
+    full_visual_path = get_full_path(graph, best_path)
+    log_to_file(form_data={'hotel': hotel, 'targets': targets}, result_data={'path': full_visual_path, 'dist': min_dist})
 
-    # 6. Полный маршрут
-    full_visual_path = get_full_path(
-        graph,
-        best_path
-    )
-    
-    # 7. Запись в файл 
-    log_to_file(
-        form_data={'hotel': hotel, 'targets': targets},
-        result_data={'path': full_visual_path, 'dist': min_dist}
-    )
-    # 8. Визуализация
-
-    svg_html = build_svg(
-        graph,
-        best_path=best_path,
-        full_path=full_visual_path,
-        hotel=hotel
-    )
+    svg_html = build_svg(graph, best_path=best_path, full_path=full_visual_path, hotel=hotel)
     result = {
         'path_str': ' → '.join(best_path),
         'full_path_str': ' → '.join(full_visual_path) if full_visual_path else '',
         'min_weight': min_dist,
     }
-    
-    return template(
-        'tsp',
-        **_tsp_defaults(),
-        form=form,
-        errors={},
-        result=result,
-        svg_html=svg_html
-    )
+    return template('tsp', **_tsp_defaults(), form=form, errors={}, result=result, svg_html=svg_html)
+
 
 @route('/static/<filepath:path>')
 def server_static(filepath):
     return static_file(filepath, root='./static')
 
 
-@route('/bfs', method=['GET', 'POST'])
-def bfs_simulation():
-    """Главная страница симуляции BFS"""
-    
-    base_vars = {
-        'title': 'Модуль BFS',
-        'year': 2026,
-        'request_path': request.path
+# ==========================================
+# --- Модуль BFS (Эпидемиология) ---
+# ==========================================
+
+@route('/bfs')
+def bfs_home():
+    default_form = {
+        'n': '10',
+        'm': '2',
+        'p': '0.5',
+        'iter': '100',
+        'v_inf': '1'
     }
-    
-    if request.method == 'GET':
-        return template('bfs', **base_vars, form={}, errors={}, result=None, svg_html=None)
-    
-    # Получаем данные из формы
-    n = request.forms.get('n', '')
-    m = request.forms.get('m', '')
-    p = request.forms.get('p', '')
-    iterations = request.forms.get('iter', '')
-    v_inf_str = request.forms.get('v_inf', '')
-    
-    # Собираем ребра
-    edges = []
-    for key, value in request.forms.items():
-        if key.startswith('u_'):
-            index = key.split('_')[1]
-            v_key = f'v_{index}'
-            if v_key in request.forms:
-                u_val = value.strip()
-                v_val = request.forms[v_key].strip()
-                if u_val and v_val:
-                    edges.append((u_val, v_val))
-    
-    # Валидация параметров (предполагается, что функция validate_bfs_params определена)
-    is_valid, errors, infected_nodes = validate_bfs_params(n, m, p, iterations, v_inf_str, edges)
-    
-    if not is_valid:
-        return template('bfs', **base_vars, form=request.forms, errors=errors, result=None, svg_html=None)
-    
-    try:
-        n_int = int(n)
-        p_float = float(p)
-        iter_int = int(iterations)
-        
-        # Создаем граф (гарантирует наличие узлов от 1 до n_int)
-        graph = create_graph_from_edges(edges, n_int)
-        
-        # Строгая фильтрация очагов: они должны быть строго в диапазоне существующих узлов графа
-        valid_infected = [int(node) for node in infected_nodes if int(node) in graph]
-        
-        if not valid_infected:
-            errors['global'] = f'Начальные очаги {v_inf_str} выходят за пределы количества узлов графа (1-{n_int})'
-            return template('bfs', **base_vars, form=request.forms, errors=errors, result=None, svg_html=None)
-        
-        # Запускаем симуляцию Монте-Карло
-        bfs_sim = ProbabilisticBFS(graph, valid_infected, p_float, iter_int)
-        results = bfs_sim.run_monte_carlo()
-        
-        # Получаем корректно выровненную динамику
-        progression = bfs_sim.get_infection_progression_avg()
-        
-        # Генерируем медиа-контент
-        chart_base64 = generate_infection_chart(progression)
-        svg_html = generate_graph_svg(graph, results['infection_frequency'], valid_infected)
-        
-        result_data = {
-            'connectivity_max': results['theoretical_max'],
-            'v_mean': f"{results['avg_duration']:.2f}",
-            'p_final': f"{results['infection_rate']:.1f}",
-            'chart_base64': chart_base64,
-            'most_common_infected': results.get('most_common_infected', []),
-            'most_common_percent': f"{results.get('most_common_percent', 0):.1f}",
-            'iterations': iter_int,
-            'avg_infected_count': f"{results['avg_infected']:.1f}",
-            'max_infected': results['max_infected'],
-            'min_infected': results['min_infected']
-        }
-        
-        return template('bfs',
-                       **base_vars,
-                       form=request.forms,
-                       result=result_data,
-                       svg_html=svg_html,
-                       errors=errors)
-                       
-    except Exception as e:
-        errors['global'] = f'Ошибка при выполнении симуляции: {str(e)}'
-        return template('bfs', **base_vars, form=request.forms, errors=errors, result=None, svg_html=None)
+    return template('bfs.tpl', 
+                    title='Эпидемиология', 
+                    year=2026, 
+                    request_path=request.path, 
+                    form=default_form, 
+                    errors={}, 
+                    result=None, 
+                    svg_html=None)
 
 
-@route('/bfs/random', method='POST')
-def generate_random_network():
-    """Генерирует случайную сеть и подготавливает данные для формы ввода"""
+@post('/bfs/random')
+def bfs_random():
+    """Генерация случайной сети с задействованием обновленного метода"""
+    # Собираем то, что пользователь успел ввести на форме (если ввёл)
+    n_raw = request.forms.get('n', '10')
+    m_raw = request.forms.get('m', '2')
+    p_raw = request.forms.get('p', '0.3')
+    iter_raw = request.forms.get('iter', '50')
+
+    # Вызываем твою функцию генерации
+    form_data = generate_random_bfs_network(n_raw, m_raw, p_raw, iter_raw)
+
+    # Отдаем промежуточный результат в таблицу рёбер
+    return template('bfs.tpl', 
+                    title='Эпидемиология', 
+                    year=2026, 
+                    request_path=request.path, 
+                    form=form_data, 
+                    errors={}, 
+                    result=None, 
+                    svg_html=None)
+
+
+@post('/bfs')
+def bfs_simulate():
+    form_data = dict(request.forms)
+    errors = {}
+
+    # Загрузка файла - используем правильное имя поля
+    upload = request.files.get('txt_file')
     
-    base_vars = {
-        'title': 'Модуль BFS',
-        'year': 2026,
-        'request_path': request.path
-    }
-    
-    n_str = request.forms.get('n', '').strip()
-    m_str = request.forms.get('m', '').strip()
-    
-    if not n_str: n_str = '10'
-    if not m_str: m_str = '12'  # Изменено на 12 для большей связности по умолчанию
-    
+    if upload and upload.filename:
+        try:
+            content = upload.file.read().decode('utf-8')
+            lines = [line.strip() for line in content.splitlines() if line.strip()]
+            if len(lines) >= 3:
+                meta = lines[0].split()
+                if len(meta) >= 4:
+                    form_data['n'] = meta[0]
+                    form_data['m'] = meta[1]
+                    form_data['p'] = meta[2]
+                    form_data['iter'] = meta[3]
+                if len(lines) >= 2:
+                    form_data['v_inf'] = lines[1]
+                edge_idx = 1
+                for line in lines[2:]:
+                    nums = re.findall(r'\d+', line)
+                    if len(nums) >= 2:
+                        form_data[f'u_{edge_idx}'] = nums[0]
+                        form_data[f'v_{edge_idx}'] = nums[1]
+                        edge_idx += 1
+        except Exception as e:
+            errors['global'] = f"Ошибка чтения файла: {str(e)}"
+
+    # Валидация N
     try:
-        n_int = int(n_str)
-        m_int = int(m_str)
-        
-        # Ограничения безопасности для веб-интерфейса
-        n_int = max(2, min(50, n_int))
-        m_int = max(1, min(100, m_int))
-        
-        edges = []
-        edge_set = set()
-        
-        # Генерация уникальных случайных ребер
-        max_possible_edges = (n_int * (n_int - 1)) // 2
-        actual_m = min(m_int, max_possible_edges)
-        
-        while len(edges) < actual_m:
-            u = random.randint(1, n_int)
-            v = random.randint(1, n_int)
-            if u != v and (u, v) not in edge_set and (v, u) not in edge_set:
-                edges.append((str(u), str(v)))
-                edge_set.add((u, v))
-        
-        # Формируем плоский словарь данных, имитирующий заполненную форму
-        form_data = {
-            'n': str(n_int),
-            'm': str(len(edges)),
-            'p': request.forms.get('p', '0.5').strip() or '0.5',
-            'iter': request.forms.get('iter', '100').strip() or '100'
-        }
-        
-        # Генерируем случайный очаг, входящий в новый диапазон узлов
-        form_data['v_inf'] = str(random.randint(1, n_int))
-        
-        # Записываем сгенерированные ребра в формате u_1, v_1, u_2...
-        for i, (u, v) in enumerate(edges, 1):
-            form_data[f'u_{i}'] = u
-            form_data[f'v_{i}'] = v
-            
-        return template('bfs', **base_vars, form=form_data, errors={}, result=None, svg_html=None)
-        
+        n = int(form_data.get('n', '10'))
+        if n < 2 or n > 50:
+            errors['n'] = 'N должно быть от 2 до 50'
     except ValueError:
-        errs = {'global': 'Ошибка генерации сети: введите корректные целые числа для N и M.'}
-        return template('bfs', **base_vars, form=request.forms, errors=errs, result=None, svg_html=None)
-    except Exception as e:
-        errs = {'global': f'Ошибка генерации сети: {str(e)}'}
-        return template('bfs', **base_vars, form=request.forms, errors=errs, result=None, svg_html=None)
+        errors['n'] = 'N должно быть целым числом'
+
+    # Валидация p
+    try:
+        p = float(form_data.get('p', '0.5'))
+        if p < 0 or p > 1:
+            errors['p'] = 'p должно быть от 0 до 1'
+    except ValueError:
+        errors['p'] = 'p должно быть числом'
+
+    # Валидация итераций
+    try:
+        iterations = int(form_data.get('iter', '100'))
+        if iterations < 1 or iterations > 1000:
+            errors['iter'] = 'I должно быть от 1 до 1000'
+    except ValueError:
+        errors['iter'] = 'I должно быть целым числом'
+
+    # Парсинг начальных очагов
+    v_inf_str = form_data.get('v_inf', '1')
+    start_nodes = []
+    for part in v_inf_str.replace(',', ' ').split():
+        if part.strip():
+            try:
+                node = int(part)
+                if 1 <= node <= n:
+                    start_nodes.append(node)
+                else:
+                    errors['v_inf'] = f'Узел {node} вне диапазона 1..{n}'
+            except ValueError:
+                pass
+    
+    if not start_nodes:
+        start_nodes = [1]
+        if 'v_inf' not in errors:
+            errors['v_inf'] = 'Указаны некорректные очаги, используем узел 1'
+
+    # Сбор рёбер
+    edges = []
+    edge_idx = 1
+    while True:
+        u_key = f'u_{edge_idx}'
+        v_key = f'v_{edge_idx}'
+        
+        u_val = form_data.get(u_key, '').strip()
+        v_val = form_data.get(v_key, '').strip()
+        
+        if not u_val and not v_val:
+            has_more = False
+            for j in range(edge_idx + 1, edge_idx + 5):
+                if form_data.get(f'u_{j}', '').strip() or form_data.get(f'v_{j}', '').strip():
+                    has_more = True
+                    break
+            if not has_more:
+                break
+            edge_idx += 1
+            continue
+        
+        if u_val and v_val:
+            try:
+                u = int(u_val)
+                v = int(v_val)
+                if 1 <= u <= n and 1 <= v <= n and u != v:
+                    if (u, v) not in edges and (v, u) not in edges:
+                        edges.append((u, v))
+                    else:
+                        errors['edges'] = f'Ребро #{edge_idx}: дубликат'
+                else:
+                    errors['edges'] = f'Ребро #{edge_idx}: узлы должны быть от 1 до {n} и не совпадать'
+            except ValueError:
+                errors['edges'] = f'Ребро #{edge_idx}: ID вершин должны быть числами'
+        elif u_val or v_val:
+            errors['edges'] = f'Ребро #{edge_idx}: заполните оба поля'
+        
+        edge_idx += 1
+        if edge_idx > 200:
+            break
+
+    if not edges:
+        errors['edges'] = 'Добавьте хотя бы одно ребро для построения графа'
+
+    if errors:
+        return template('bfs.tpl', 
+                        title='Эпидемиология', 
+                        year=2026, 
+                        request_path=request.path, 
+                        form=form_data, 
+                        errors=errors, 
+                        result=None, 
+                        svg_html=None)
+
+    # Создание графа и симуляция
+    from visual.bfs_visual import create_graph_from_edges, generate_graph_svg, generate_infection_chart
+    from algorithms.bfs_algorithm import ProbabilisticBFS
+    
+    graph = create_graph_from_edges(n, edges)
+    simulator = ProbabilisticBFS(graph, p=p)
+    sim_results = simulator.monte_carlo_simulation(start_nodes, iterations)
+
+    chart_b64 = generate_infection_chart(sim_results['timeline'])
+    svg_html = generate_graph_svg(graph, start_nodes, sim_results['infection_frequencies'])
+
+    result = {
+        'connectivity_max': sim_results.get('max_possible_reach', n),
+        'v_mean': f"{sim_results.get('avg_duration', 0.0):.2f}",
+        'p_final': f"{sim_results.get('avg_infected_percentage', 0.0):.1f}",
+        'avg_infected_count': int(sim_results.get('avg_infected_count', 0)),
+        'iterations': iterations,
+        'max_infected': sim_results.get('max_infected', n),
+        'min_infected': sim_results.get('min_infected', 0),
+        'most_common_infected': sim_results.get('most_common_pattern', []),
+        'most_common_percent': f"{sim_results.get('pattern_probability', 0.0):.1f}",
+        'chart_base64': chart_b64
+    }
+
+    return template('bfs.tpl', 
+                    title='Эпидемиология', 
+                    year=2026, 
+                    request_path=request.path, 
+                    form=form_data, 
+                    errors={}, 
+                    result=result, 
+                    svg_html=svg_html)
+
 
 @route('/about')
 def about():
     return template('about', title='Об авторах', year=2026, request_path=request.path)
+
 
 if __name__ == '__main__':
     run(host='localhost', port=8080, debug=True, reloader=True)

@@ -1,97 +1,97 @@
-import networkx as nx
-import matplotlib.pyplot as plt
-import io
-import base64
+import re
+import random
 
-def create_graph_from_edges(edges, n_nodes):
-    """Создает граф из списка ребер с гарантированным добавлением всех узлов"""
-    G = nx.Graph()
-    
-    # Добавляем все узлы от 1 до n_nodes
-    for i in range(1, n_nodes + 1):
-        G.add_node(i)
-    
-    # Добавляем ребра с валидацией данных
-    for u, v in edges:
-        if u is not None and v is not None:
-            G.add_edge(int(u), int(v))
-    
-    return G
+def generate_random_bfs_network(n_str, m_str, p_str, iter_str):
+    """Генерирует случайную структуру сети строго с M рёбрами"""
+    n_str = n_str.strip() if n_str else '10'
+    m_str = m_str.strip() if m_str else '2'  # По умолчанию 2, как на твоем скриншоте
+    p_str = p_str.strip() if p_str else '0.3'
+    iter_str = iter_str.strip() if iter_str else '50'
 
-def generate_graph_svg(graph, infection_frequency=None, initial_infected=None):
-    """Генерирует SVG представление графа с правильной цветовой палитрой"""
-    # Фиксируем размер полотна
-    plt.figure(figsize=(12, 8))
+    n_int = int(n_str) if n_str.isdigit() else 10
+    m_int = int(m_str) if m_str.isdigit() else 2
     
-    # Использование семени (random_state) гарантирует одинаковое расположение узлов при перезапусках
-    pos = nx.spring_layout(graph, k=1.0, iterations=50, seed=42)
+    n_int = max(2, min(50, n_int))
+    max_possible_edges = (n_int * (n_int - 1)) // 2
+    actual_m = max(0, min(max_possible_edges, m_int))
     
-    node_colors = []
-    initial_set = set(initial_infected) if initial_infected else set()
+    edges = []
+    edge_set = set()
     
-    for node in graph.nodes():
-        if node in initial_set:
-            node_colors.append('#dc2626')  # Ярко-красный для нулевого пациента
-        elif infection_frequency and node in infection_frequency:
-            freq = infection_frequency[node]
-            if freq > 0:
-                # Масштабируем от 0.2 до 0.9 для лучшей читаемости градиента YlOrRd
-                intensity = 0.2 + freq * 0.7
-                node_colors.append(plt.cm.YlOrRd(intensity))
-            else:
-                node_colors.append('#e5e7eb')  # Серый для незараженных
+    # Генерируем ровно actual_m случайных рёбер (БЕЗ базового связного дерева)
+    while len(edges) < actual_m:
+        u = random.randint(1, n_int)
+        v = random.randint(1, n_int)
+        if u != v:
+            edge = (min(u, v), max(u, v))
+            if edge not in edge_set:
+                edges.append((str(u), str(v)))
+                edge_set.add(edge)
+            
+    form_data = {
+        'n': str(n_int),
+        'm': str(actual_m),
+        'p': p_str if p_str else '0.3',
+        'iter': iter_str if iter_str else '50'
+    }
+    
+    # Придумываем случайные начальные очаги заражения (вершины)
+    # Например, выберем случайное количество вершин от 1 до 3, но не больше N
+    count_start_nodes = random.randint(1, min(3, n_int))
+    random_start_nodes = random.sample(range(1, n_int + 1), count_start_nodes)
+    form_data['v_inf'] = " ".join(map(str, sorted(random_start_nodes)))
+    
+    for i, (u, v) in enumerate(edges, 1):
+        form_data[f'u_{i}'] = u
+        form_data[f'v_{i}'] = v
+        
+    return form_data
+
+
+def parse_bfs_config_file(file_obj):
+    """Парсит текстовый файл конфигурации"""
+    form_data = {}
+    errors = {}
+    
+    try:
+        # Читаем содержимое файла
+        if hasattr(file_obj, 'file'):
+            content = file_obj.file.read().decode('utf-8')
         else:
-            node_colors.append('#e5e7eb')
-    
-    # Отрисовка базовых элементов графа
-    nx.draw_networkx_nodes(graph, pos, node_color=node_colors, node_size=500, alpha=0.95, edgecolors='#4b5563')
-    nx.draw_networkx_edges(graph, pos, width=1.2, alpha=0.4, edge_color='#9ca3af')
-    nx.draw_networkx_labels(graph, pos, font_size=10, font_weight='bold', font_color='#1f2937')
-    
-    plt.title("Структура сети. Красный — очаг, Желтый->Оранжевый — частота заражения", fontsize=14, pad=15)
-    plt.axis('off')
-    
-    # Экспорт в SVG строку
-    buf = io.BytesIO()
-    plt.savefig(buf, format='svg', bbox_inches='tight')
-    buf.seek(0)
-    svg_string = buf.getvalue().decode('utf-8')
-    plt.close()
-    
-    return svg_string
-
-def generate_infection_chart(progression_data):
-    """Генерирует график динамики заражения (возвращает base64 PNG)"""
-    if not progression_data:
-        return None
-    
-    plt.figure(figsize=(10, 5))
-    
-    steps = list(range(len(progression_data)))
-    plt.plot(steps, progression_data, marker='o', linewidth=2.5, markersize=5, 
-             color='#dc2626', label='Среднее кол-во зараженных')
-    
-    plt.xlabel('Шаг времени (итерация BFS)')
-    plt.ylabel('Количество зараженных узлов')
-    plt.title('Эпидемиологическая динамика (Модель SI)')
-    plt.grid(True, linestyle='--', alpha=0.5)
-    plt.legend(loc='upper left')
-    
-    # Корректное отображение финальной метки
-    final_value = progression_data[-1]
-    plt.annotate(f'Итог: {final_value:.2f}', 
-                xy=(steps[-1], final_value),
-                xytext=(-50, -20),  # Смещаем вниз-влево, чтобы текст не вылезал за границы
-                textcoords='offset points',
-                fontsize=10,
-                fontweight='bold',
-                bbox=dict(boxstyle='round,pad=0.4', facecolor='#fef08a', edgecolor='#eab308', alpha=0.9))
-    
-    # Экспорт в Base64 PNG
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', dpi=120)
-    buf.seek(0)
-    img_base64 = base64.b64encode(buf.read()).decode('utf-8')
-    plt.close()
-    
-    return img_base64
+            content = file_obj.read().decode('utf-8')
+            
+        lines = [line.strip() for line in content.splitlines() if line.strip()]
+        
+        if len(lines) < 3:
+            errors['global'] = "Некорректная структура файла. Минимум 3 строки."
+            return form_data, errors
+            
+        # Первая строка: N M p I
+        meta_parts = lines[0].split()
+        if len(meta_parts) < 4:
+            errors['global'] = "Первая строка: N M p I"
+            return form_data, errors
+            
+        form_data['n'] = meta_parts[0]
+        form_data['m'] = meta_parts[1]
+        form_data['p'] = meta_parts[2]
+        form_data['iter'] = meta_parts[3]
+        
+        # Вторая строка: начальные очаги
+        form_data['v_inf'] = lines[1]
+        
+        # Остальные строки: рёбра
+        edge_index = 1
+        for line in lines[2:]:
+            nodes = re.findall(r'\d+', line)
+            if len(nodes) >= 2:
+                form_data[f'u_{edge_index}'] = nodes[0]
+                form_data[f'v_{edge_index}'] = nodes[1]
+                edge_index += 1
+                
+    except UnicodeDecodeError:
+        errors['global'] = "Ошибка кодировки. Используйте UTF-8."
+    except Exception as e:
+        errors['global'] = f"Ошибка: {str(e)}"
+        
+    return form_data, errors
