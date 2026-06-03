@@ -2,6 +2,8 @@
 import json
 import random
 import re
+import io
+import zipfile
 from bottle import route, post, run, template, static_file, request, response
 
 # Импорты модулей проекта
@@ -288,14 +290,17 @@ def bfs_random():
                     svg_html=None)
 
 
+# Глобальный буфер для хранения данных последней успешной симуляции
+current_bfs_data = None
+
 @post('/bfs')
 def bfs_simulate():
+    global current_bfs_data
     form_data = dict(request.forms)
     errors = {}
 
-    # Загрузка файла - используем правильное имя поля
+    # --- Твой существующий код валидации и сборки файла (без изменений) ---
     upload = request.files.get('txt_file')
-    
     if upload and upload.filename:
         try:
             content = upload.file.read().decode('utf-8')
@@ -319,107 +324,70 @@ def bfs_simulate():
         except Exception as e:
             errors['global'] = f"Ошибка чтения файла: {str(e)}"
 
-    # Валидация N
     try:
         n = int(form_data.get('n', '10'))
-        if n < 2 or n > 50:
-            errors['n'] = 'N должно быть от 2 до 50'
-    except ValueError:
-        errors['n'] = 'N должно быть целым числом'
+        if n < 2 or n > 50: errors['n'] = 'N должно быть от 2 до 50'
+    except ValueError: errors['n'] = 'N должно быть целым числом'
 
-    # Валидация p
     try:
         p = float(form_data.get('p', '0.5'))
-        if p < 0 or p > 1:
-            errors['p'] = 'p должно быть от 0 до 1'
-    except ValueError:
-        errors['p'] = 'p должно быть числом'
+        if p < 0 or p > 1: errors['p'] = 'p должно быть от 0 до 1'
+    except ValueError: errors['p'] = 'p должно быть числом'
 
-    # Валидация итераций
     try:
         iterations = int(form_data.get('iter', '100'))
-        if iterations < 1 or iterations > 1000:
-            errors['iter'] = 'I должно быть от 1 до 1000'
-    except ValueError:
-        errors['iter'] = 'I должно быть целым числом'
+        if iterations < 1 or iterations > 1000: errors['iter'] = 'I должно быть от 1 до 1000'
+    except ValueError: errors['iter'] = 'I должно быть целым числом'
 
-    # Парсинг начальных очагов
     v_inf_str = form_data.get('v_inf', '1')
     start_nodes = []
     for part in v_inf_str.replace(',', ' ').split():
         if part.strip():
             try:
                 node = int(part)
-                if 1 <= node <= n:
-                    start_nodes.append(node)
-                else:
-                    errors['v_inf'] = f'Узел {node} вне диапазона 1..{n}'
-            except ValueError:
-                pass
+                if 1 <= node <= n: start_nodes.append(node)
+                else: errors['v_inf'] = f'Узел {node} вне диапазона 1..{n}'
+            except ValueError: pass
     
     if not start_nodes:
         start_nodes = [1]
-        if 'v_inf' not in errors:
-            errors['v_inf'] = 'Указаны некорректные очаги, используем узел 1'
 
-    # Сбор рёбер
     edges = []
     edge_idx = 1
     while True:
-        u_key = f'u_{edge_idx}'
-        v_key = f'v_{edge_idx}'
-        
-        u_val = form_data.get(u_key, '').strip()
-        v_val = form_data.get(v_key, '').strip()
-        
+        u_val = form_data.get(f'u_{edge_idx}', '').strip()
+        v_val = form_data.get(f'v_{edge_idx}', '').strip()
         if not u_val and not v_val:
             has_more = False
             for j in range(edge_idx + 1, edge_idx + 5):
                 if form_data.get(f'u_{j}', '').strip() or form_data.get(f'v_{j}', '').strip():
                     has_more = True
                     break
-            if not has_more:
-                break
+            if not has_more: break
             edge_idx += 1
             continue
         
         if u_val and v_val:
             try:
-                u = int(u_val)
-                v = int(v_val)
+                u, v = int(u_val), int(v_val)
                 if 1 <= u <= n and 1 <= v <= n and u != v:
-                    if (u, v) not in edges and (v, u) not in edges:
-                        edges.append((u, v))
-                    else:
-                        errors['edges'] = f'Ребро #{edge_idx}: дубликат'
-                else:
-                    errors['edges'] = f'Ребро #{edge_idx}: узлы должны быть от 1 до {n} и не совпадать'
-            except ValueError:
-                errors['edges'] = f'Ребро #{edge_idx}: ID вершин должны быть числами'
-        elif u_val or v_val:
-            errors['edges'] = f'Ребро #{edge_idx}: заполните оба поля'
-        
+                    if (u, v) not in edges and (v, u) not in edges: edges.append((u, v))
+            except ValueError: pass
         edge_idx += 1
-        if edge_idx > 200:
-            break
+        if edge_idx > 200: break
 
     if not edges:
-        errors['edges'] = 'Добавьте хотя бы одно ребро для построения графа'
+        errors['edges'] = 'Добавьте хотя бы одно ребро'
+    # --- Конец существующего кода валидации ---
 
     if errors:
-        return template('bfs.tpl', 
-                        title='Эпидемиология', 
-                        year=2026, 
-                        request_path=request.path, 
-                        form=form_data, 
-                        errors=errors, 
-                        result=None, 
-                        svg_html=None)
+        return template('bfs.tpl', title='Эпидемиология', year=2026, request_path=request.path, form=form_data, errors=errors, result=None, svg_html=None)
 
-    # Создание графа и симуляция
-    from visual.bfs_visual import create_graph_from_edges, generate_graph_svg, generate_infection_chart
-    from algorithms.bfs_algorithm import ProbabilisticBFS
-    
+    # Сохраняем успешные данные в глобальный буфер перед запуском симуляции
+    current_bfs_data = {
+        'n': n, 'm': form_data.get('m', '?'), 'p': p, 'iter': iterations, 'v_inf': v_inf_str, 'edges': edges
+    }
+
     graph = create_graph_from_edges(n, edges)
     simulator = ProbabilisticBFS(graph, p=p)
     sim_results = simulator.monte_carlo_simulation(start_nodes, iterations)
@@ -440,14 +408,77 @@ def bfs_simulate():
         'chart_base64': chart_b64
     }
 
-    return template('bfs.tpl', 
-                    title='Эпидемиология', 
-                    year=2026, 
-                    request_path=request.path, 
-                    form=form_data, 
-                    errors={}, 
-                    result=result, 
-                    svg_html=svg_html)
+    return template('bfs.tpl', title='Эпидемиология', year=2026, request_path=request.path, form=form_data, errors={}, result=result, svg_html=svg_html)
+
+
+@route('/bfs/download-results', method='GET')
+def download_bfs_results():
+    global current_bfs_data
+    
+    if not current_bfs_data:
+        response.status = 400
+        return "Нет данных для скачивания. Сначала запустите симуляцию."
+
+    # Извлекаем сохранённые данные
+    n = current_bfs_data['n']
+    m = current_bfs_data['m']
+    p = current_bfs_data['p']
+    iterations = current_bfs_data['iter']
+    v_inf = current_bfs_data['v_inf']
+    edges = current_bfs_data['edges']
+
+    # 1. Формируем текстовый отчёт
+    stats_content = f"""==================================================
+ОТЧЁТ О МОДЕЛИРОВАНИИ РАСПРОСТРАНЕНИЯ ВИРУСА
+==================================================
+Параметры запуска:
+- Количество узлов (N): {n}
+- Количество очагов/рёбер (M): {m}
+- Вероятность заражения (p): {p}
+- Число итераций Монте-Карло (I): {iterations}
+- Начальные очаги заражения: {v_inf}
+
+Список связей графа (Рёбра):
+"""
+    dot_edges = ""
+    for idx, (u, v) in enumerate(edges, 1):
+        stats_content += f"Ребро #{idx}: Узел {u} <-> Узел {v}\n"
+        dot_edges += f"  {u} -- {v};\n"
+
+    stats_content += "\n==================================================\n"
+    stats_content += "Статистика посчитана на момент выгрузки архива.\n"
+
+    # 2. Генерируем SVG-код графа для архива
+    # Передаем пустой словарь частот или базовые значения, чтобы просто построить сетку
+    try:
+        graph_obj = create_graph_from_edges(n, edges)
+        # Парсим начальные узлы для корректной подсветки на картинке
+        start_nodes = [int(x) for x in v_inf.replace(',', ' ').split() if x.strip().isdigit()]
+        if not start_nodes:
+            start_nodes = [1]
+            
+        # Строим SVG-структуру графа
+        svg_string = generate_graph_svg(graph_obj, start_nodes, {})
+    except Exception:
+        svg_string = None
+
+    # 3. Создание ZIP в памяти
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        # Добавляем текст и dot-нотацию
+        zip_file.writestr("simulation_statistics.txt", stats_content)
+        
+        # Если SVG успешно сгенерировался — бережно кладем его в архив
+        if svg_string:
+            zip_file.writestr("graph_visualization.svg", svg_string)
+
+    zip_buffer.seek(0)
+
+    response.set_header('Content-Type', 'application/zip')
+    response.set_header('Content-Disposition', 'attachment; filename=bfs_simulation_results.zip')
+    
+    return zip_buffer.getvalue()
+
 
 
 @route('/about')

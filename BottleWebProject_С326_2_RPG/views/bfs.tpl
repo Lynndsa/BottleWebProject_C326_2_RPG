@@ -134,10 +134,10 @@
 
           <div class="preset-buttons">
             <button type="submit" formaction="/bfs/random" class="btn-preset form-flex-btn">
-              🎲 Сгенерировать сеть
+              Сгенерировать сеть
             </button>
             <button type="button" class="btn-preset form-flex-btn" onclick="document.getElementById('txt_file_input').click()">
-              📁 Файл конфигурации (.txt)
+              Файл конфигурации (.txt)
             </button>
           </div>
 
@@ -299,7 +299,11 @@
   % if _result or _svg:
   <div class="results-wrapper-block">
     <div class="card-panel analytics-master-panel">
-      
+      <div style="text-align: right; margin: 20px 0;">
+        <a href="/bfs/download-results" class="btn-preset" style="display: inline-block; background-color: #28a745; color: white; padding: 10px 20px; border-radius: 4px; font-weight: bold; text-decoration: none; text-align: center;">
+          📦 Скачать архив результатов (.zip)
+        </a>
+      </div>
       <h2 class="analytics-main-title">
         📊 Аналитика результатов моделирования
       </h2>
@@ -365,6 +369,8 @@
               <img src="data:image/png;base64,{{_result['chart_base64']}}" alt="Кривая динамики заражения" class="chart-img-fluid">
           </div>
       </div>
+      
       % end
+      
 
 </div>
