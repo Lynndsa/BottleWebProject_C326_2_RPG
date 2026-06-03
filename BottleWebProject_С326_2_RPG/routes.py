@@ -244,9 +244,6 @@ def server_static(filepath):
     return static_file(filepath, root='./static')
 
 
-# ==========================================
-# --- Модуль BFS (Эпидемиология) ---
-# ==========================================
 
 @route('/bfs')
 def bfs_home():
@@ -269,7 +266,6 @@ def bfs_home():
 
 @post('/bfs/random')
 def bfs_random():
-    """Генерация случайной сети с задействованием обновленного метода"""
     # Собираем то, что пользователь успел ввести на форме (если ввёл)
     n_raw = request.forms.get('n', '10')
     m_raw = request.forms.get('m', '2')
@@ -297,61 +293,25 @@ current_bfs_data = None
 def bfs_simulate():
     global current_bfs_data
     form_data = dict(request.forms)
-    errors = {}
 
-    # --- Твой существующий код валидации и сборки файла (без изменений) ---
     upload = request.files.get('txt_file')
     if upload and upload.filename:
-        try:
-            content = upload.file.read().decode('utf-8')
-            lines = [line.strip() for line in content.splitlines() if line.strip()]
-            if len(lines) >= 3:
-                meta = lines[0].split()
-                if len(meta) >= 4:
-                    form_data['n'] = meta[0]
-                    form_data['m'] = meta[1]
-                    form_data['p'] = meta[2]
-                    form_data['iter'] = meta[3]
-                if len(lines) >= 2:
-                    form_data['v_inf'] = lines[1]
-                edge_idx = 1
-                for line in lines[2:]:
-                    nums = re.findall(r'\d+', line)
-                    if len(nums) >= 2:
-                        form_data[f'u_{edge_idx}'] = nums[0]
-                        form_data[f'v_{edge_idx}'] = nums[1]
-                        edge_idx += 1
-        except Exception as e:
-            errors['global'] = f"Ошибка чтения файла: {str(e)}"
+        file_form_data, file_errors = parse_bfs_config_file(upload)
+        if file_errors:
+            return template('bfs.tpl', title='Эпидемиология', year=2026, request_path=request.path, form=form_data, errors=file_errors, result=None, svg_html=None)
+        form_data.update(file_form_data)
 
-    try:
-        n = int(form_data.get('n', '10'))
-        if n < 2 or n > 50: errors['n'] = 'N должно быть от 2 до 50'
-    except ValueError: errors['n'] = 'N должно быть целым числом'
+   
+    validated_data, errors = validate_bfs_params(form_data)
 
-    try:
-        p = float(form_data.get('p', '0.5'))
-        if p < 0 or p > 1: errors['p'] = 'p должно быть от 0 до 1'
-    except ValueError: errors['p'] = 'p должно быть числом'
-
-    try:
-        iterations = int(form_data.get('iter', '100'))
-        if iterations < 1 or iterations > 1000: errors['iter'] = 'I должно быть от 1 до 1000'
-    except ValueError: errors['iter'] = 'I должно быть целым числом'
-
+    # Достаем отвалидированные бэкендом чистые переменные
+    n = validated_data.get('n', 10)
+    p = validated_data.get('p', 0.5)
+    iterations = validated_data.get('iter', 100)
+    start_nodes = validated_data.get('v_inf', [1])
     v_inf_str = form_data.get('v_inf', '1')
-    start_nodes = []
-    for part in v_inf_str.replace(',', ' ').split():
-        if part.strip():
-            try:
-                node = int(part)
-                if 1 <= node <= n: start_nodes.append(node)
-                else: errors['v_inf'] = f'Узел {node} вне диапазона 1..{n}'
-            except ValueError: pass
-    
-    if not start_nodes:
-        start_nodes = [1]
 
+    # Сбор рёбер из таблицы формы
     edges = []
     edge_idx = 1
     while True:
@@ -376,18 +336,19 @@ def bfs_simulate():
         edge_idx += 1
         if edge_idx > 200: break
 
-    if not edges:
+    if not edges and not errors.get('n') and not errors.get('m'):
         errors['edges'] = 'Добавьте хотя бы одно ребро'
-    # --- Конец существующего кода валидации ---
 
+    # Если есть ошибки (от валидатора параметров или по рёбрам) — рендерим форму обратно
     if errors:
         return template('bfs.tpl', title='Эпидемиология', year=2026, request_path=request.path, form=form_data, errors=errors, result=None, svg_html=None)
 
-    # Сохраняем успешные данные в глобальный буфер перед запуском симуляции
+    # Сохраняем успешные данные в глобальный буфер
     current_bfs_data = {
         'n': n, 'm': form_data.get('m', '?'), 'p': p, 'iter': iterations, 'v_inf': v_inf_str, 'edges': edges
     }
 
+    # Запуск симуляции (остальной код функции до конца остаётся без изменений)
     graph = create_graph_from_edges(n, edges)
     simulator = ProbabilisticBFS(graph, p=p)
     sim_results = simulator.monte_carlo_simulation(start_nodes, iterations)

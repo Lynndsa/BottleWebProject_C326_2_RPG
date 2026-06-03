@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 
 def validate_bfs_params(form_data):
@@ -20,6 +21,28 @@ def validate_bfs_params(form_data):
                 validated['n'] = n
         except ValueError:
             errors['n'] = 'N должно быть целым числом'
+            
+    # --- ДОБАВЛЯЕМ ВАЛИДАЦИЮ ОЧАГОВ / РЁБЕР (M) ---
+    m_str = form_data.get('m', '')
+    if not m_str:
+        errors['m'] = 'Укажите количество рёбер M'
+    else:
+        try:
+            m = int(m_str)
+            if m < 0:
+                errors['m'] = 'Значение не может быть меньше 0'
+            elif 'n' in validated:
+                # Наша проверка на максимальное количество рёбер полного графа
+                n_val = validated['n']
+                max_edges = (n_val * (n_val - 1)) // 2
+                if m > max_edges:
+                    errors['m'] = f'Максимум рёбер для {n_val} вершин — {max_edges} (полный граф)'
+                else:
+                    validated['m'] = m
+            else:
+                validated['m'] = m
+        except ValueError:
+            errors['m'] = 'M должно быть целым числом'
     
     # Валидация p
     p_str = form_data.get('p', '')
@@ -53,16 +76,20 @@ def validate_bfs_params(form_data):
     v_inf_str = form_data.get('v_inf', '')
     infected_nodes = []
     if v_inf_str:
-        for part in v_inf_str.replace(',', ' ').split():
-            part = part.strip()
-            if part:
-                try:
-                    node = int(part)
-                    infected_nodes.append(node)
-                except ValueError:
-                    pass
+        if 'n' in validated:
+            n_val = validated['n']
+            for part in v_inf_str.replace(',', ' ').split():
+                if part.strip():
+                    try:
+                        node = int(part)
+                        if 1 <= node <= n_val:
+                            infected_nodes.append(node)
+                        else:
+                            errors['v_inf'] = f'Узел {node} вне диапазона 1..{n_val}'
+                    except ValueError:
+                        pass
     
-    if not infected_nodes:
+    if not infected_nodes and 'v_inf' not in errors:
         infected_nodes = [1]
         if 'n' in validated:
             errors['v_inf'] = f'Указаны некорректные очаги, используем узел 1'

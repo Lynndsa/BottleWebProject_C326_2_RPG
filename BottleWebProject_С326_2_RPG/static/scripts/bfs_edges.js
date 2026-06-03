@@ -1,4 +1,4 @@
-// ТВОЯ РАБОЧАЯ ФУНКЦИЯ ДОБАВЛЕНИЯ СТРОКИ
+
 function addNewEdgeRow() {
     const tbody = document.querySelector('#matrix-table tbody');
     const rowCount = tbody.querySelectorAll('tr').length;
@@ -28,29 +28,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- ИСПРАВЛЕНИЕ ДЛЯ СБРОСА ДО ОТПРАВКИ НА СЕРВЕР ---
+   
     const fileInput = document.getElementById('txt_file_input');
     const bfsForm = document.getElementById('bfs-form');
 
     if (fileInput && mInput && bfsForm) {
-        // Убираем старый onchange, который отправлял форму мгновенно без ведома JS
         fileInput.removeAttribute('onchange');
 
-        // Вешаем правильное событие изменения файла
+        //Ссобытие изменения файла
         fileInput.addEventListener('change', () => {
-            // 1. Принудительно ставим M в 0 перед отправкой
+            //Ставим M в 0 перед отправкой
             mInput.value = '0';
 
-            // 2. Очищаем строки в таблице фронтенда
+            //Очищаем строки в таблице
             adjustTableRows(0);
 
-            // 3. И только теперь отправляем форму на бэкенд
+            //Отправка формы
             bfsForm.submit();
         });
     }
 });
-
-// ТВОЯ РАБОЧАЯ ФУНКЦИЯ УДАЛЕНИЯ СТРОКИ
+//Функция удаления строки
 function removeEdgeRow(button) {
     const row = button.closest('tr');
     if (row) {
@@ -59,7 +57,7 @@ function removeEdgeRow(button) {
     }
 }
 
-// ТВОЯ РАБОЧАЯ ПЕРЕИНДЕКСАЦИЯ
+
 function reindexRows() {
     const rows = document.querySelectorAll('#matrix-table tbody tr');
     rows.forEach((row, index) => {
@@ -81,7 +79,7 @@ function updateMInputValue(count) {
     }
 }
 
-// ТВОЯ РАБОЧАЯ ДИНАМИЧЕСКАЯ ГЕНЕРАЦИЯ СТРОК
+//Динамическая генерация строк
 function adjustTableRows(targetValue) {
     const count = parseInt(targetValue, 10);
     if (isNaN(count) || count < 0) return;
@@ -111,7 +109,7 @@ function adjustTableRows(targetValue) {
         }
     }
 }
-// --- РАСШИРЕННЫЙ БЛОК ЖИВОЙ ВАЛИДАЦИИ (С УЧЁТОМ СВЯЗЕЙ С N) ---
+//Блок с валидацией
 const inputN = document.getElementById('input-n');
 const inputM = document.getElementById('m_input');
 const inputP = document.querySelector('input[name="p"]');
@@ -154,12 +152,11 @@ function validateField(input, type) {
         input.classList.add('is-error');
     }
 
-    // Перепроверяем всю форму, включая динамические элементы
     checkFormValidity();
     return isValid;
 }
 
-// ВАЛИДАЦИЯ ДИНАМИЧЕСКИХ ОЧАГОВ ЗАРАЖЕНИЯ (ЧИПСОВ)
+//Валидация очагов
 function validateInfectedChips() {
     const nVal = inputN ? parseInt(inputN.value, 10) : NaN;
     if (isNaN(nVal)) return;
@@ -176,7 +173,7 @@ function validateInfectedChips() {
     });
 }
 
-// ВАЛИДАЦИЯ ИНПУТОВ В ТАБЛИЦЕ РЁБЕР (УЗЛЫ U И V)
+//Валидация ребер в таблице
 function validateTableInputs() {
     const nVal = inputN ? parseInt(inputN.value, 10) : NaN;
     if (isNaN(nVal)) return;
@@ -230,7 +227,6 @@ function checkFormValidity() {
     }
 });
 
-// Делегирование событий для динамических элементов (чипсы и таблица рёбер)
 // Слушаем любые изменения ввода в контейнере параметров и таблице
 document.getElementById('infected-inputs-container').addEventListener('input', () => {
     validateInfectedChips();
@@ -251,3 +247,67 @@ setTimeout(() => {
     validateTableInputs();
     checkFormValidity();
 }, 100);
+
+// Добавление кнопки для зараженных вершин
+document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("infected-inputs-container");
+    const hiddenInput = document.getElementById("hidden-v-inf");
+
+    let rawValues = hiddenInput.value.trim();
+    let valuesArray = rawValues ? rawValues.split(/\s+/) : ["1"];
+
+    function renderInputs() {
+        container.innerHTML = "";
+        valuesArray.forEach((val, idx) => {
+            const wrapper = document.createElement("div");
+            wrapper.className = "infected-node-chip";
+
+            const input = document.createElement("input");
+            input.type = "number";
+            input.className = "infected-node-input-field";
+            input.value = val;
+            input.min = "1";
+
+            input.addEventListener("input", function () {
+                valuesArray[idx] = input.value.trim();
+            });
+
+            wrapper.appendChild(input);
+
+            if (valuesArray.length > 1) {
+                const btnDel = document.createElement("span");
+                btnDel.className = "infected-node-chip-delete";
+                btnDel.innerText = "×";
+                btnDel.onclick = function () {
+                    valuesArray.splice(idx, 1);
+                    renderInputs();
+                };
+                wrapper.appendChild(btnDel);
+            }
+            container.appendChild(wrapper);
+        });
+
+        const btnAdd = document.createElement("button");
+        btnAdd.type = "button";
+        btnAdd.className = "btn-add-infected-chip";
+        btnAdd.innerText = "+";
+
+        btnAdd.onclick = function () {
+            let nextVal = 1;
+            const numValues = valuesArray.map(v => parseInt(v)).filter(v => !isNaN(v));
+            if (numValues.length > 0) {
+                nextVal = Math.max(...numValues) + 1;
+            }
+            valuesArray.push(nextVal.toString());
+            renderInputs();
+        };
+        container.appendChild(btnAdd);
+    }
+
+    renderInputs();
+
+    window.prepareVInfString = function () {
+        const cleanValues = valuesArray.map(v => v.trim()).filter(v => v !== "");
+        hiddenInput.value = cleanValues.join(" ");
+    };
+});
