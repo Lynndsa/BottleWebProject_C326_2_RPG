@@ -28,15 +28,13 @@
                 </div>
                 <div>
                     <h3>Гуляев Андрей</h3>
-                    <span class="role-badge badge-blue">Team Lead / Backend</span>
+                    <span class="role-badge badge-blue">BFS</span>
                 </div>
             </div>
             <div class="about-card-body">
-                <p>Проектировал общую архитектуру серверной части веб-приложения, управлял интеграцией модулей и обеспечивал стабильность системы.</p>
                 <ul class="contribution-list">
-                    <li>Разработка логики маршрутизации и интеграция шаблонов Bottle/Jinja2.</li>
-                    <li>Оптимизация производительности серверной части симулятора.</li>
-                    <li>Проектирование API для динамического обмена данными графов.</li>
+                    <li>Разработан алгоритм поиска в ширину и метода Монте-Карло</li>
+                    <li>Верстка модуля BFS и "Об авторах"</li>
                 </ul>
             </div>
             <div class="about-card-footer">
@@ -61,15 +59,13 @@
                 </div>
                 <div>
                     <h3>Романова Лада</h3>
-                    <span class="role-badge badge-cyan">Algorithm Engineer</span>
+                    <span class="role-badge badge-cyan">TSP</span>
                 </div>
             </div>
             <div class="about-card-body">
-                <p>Отвечала за математическую точность, реализацию и оптимизацию графовых алгоритмов (BFS, DFS, Дейкстра, TSP).</p>
                 <ul class="contribution-list">
-                    <li>Реализация комбинированного метода Дейкстры + Brute Force для TSP.</li>
-                    <li>Модификация алгоритма BFS под вероятностное заражение сети.</li>
-                    <li>Валидация матриц смежности и парсинг импортируемых файлов <code>.txt</code>.</li>
+                    <li>Разработан алгоритм tsp</li>
+                    <li>Верстка модуля TSP и "Главная"</li>
                 </ul>
             </div>
             <div class="about-card-footer">
@@ -94,15 +90,13 @@
                 </div>
                 <div>
                     <h3>Пономарёва Анастасия</h3>
-                    <span class="role-badge badge-teal">Frontend / UI UX</span>
+                    <span class="role-badge badge-teal">DFS</span>
                 </div>
             </div>
             <div class="about-card-body">
-                <p>Занималась созданием адаптивного интерфейса системы, версткой компонентов и интерактивной генерацией SVG-схем графов.</p>
                 <ul class="contribution-list">
-                    <li>Разработка дизайн-системы, CSS-переменных и кастомных анимаций.</li>
-                    <li>Динамический рендеринг рёбер и вершин графа в браузере.</li>
-                    <li>Обеспечение кроссбраузерности и адаптивности для мобильных устройств.</li>
+                    <li>Разработан алгоритм dfs</li>
+                    <li>Верстка модуля DFS и создание readme.md</li>
                 </ul>
             </div>
             <div class="about-card-footer">
