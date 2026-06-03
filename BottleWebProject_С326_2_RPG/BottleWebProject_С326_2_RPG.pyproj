@@ -20,6 +20,9 @@
     <RootNamespace>BottleWebProject_С326_2_RPG</RootNamespace>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <SuppressPackageInstallationPrompt>True</SuppressPackageInstallationPrompt>
+    <TestFramework>unittest</TestFramework>
+    <UnitTestPattern>test*.py</UnitTestPattern>
+    <UnitTestRootDirectory>tests/.</UnitTestRootDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -40,6 +43,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="app.py" />
+    <Compile Include="test_dfs.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tools\tsp_tools.py">
       <SubType>Code</SubType>
     </Compile>
