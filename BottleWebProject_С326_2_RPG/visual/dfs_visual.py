@@ -1,98 +1,163 @@
-
 import math
 
-# Вычисление координат вершин
+# ---------------------------------------------------------------------------
+# Цветовая палитра
+# ---------------------------------------------------------------------------
+COLOR_SUS_FILL   = '#fff5f5'
+COLOR_SUS_STROKE = '#ef4444'
+COLOR_SUS_TEXT   = '#b91c1c'
+COLOR_SUS_EDGE   = '#ef4444'
 
-def _layout_nodes(
+COLOR_NORM_FILL   = '#f0f9ff'
+COLOR_NORM_STROKE = '#38bdf8'
+COLOR_NORM_TEXT   = '#0c4a6e'
+COLOR_NORM_EDGE   = '#0ea5e9'
+
+COLOR_START_FILL  = '#0f172a'
+COLOR_START_TEXT  = '#ffffff'
+
+COLOR_BG   = '#f8fafc'
+COLOR_GRID = '#e2e8f0'
+
+
+# ---------------------------------------------------------------------------
+# Layout: исток в центре, остальные по кругу (или двум кольцам)
+# ---------------------------------------------------------------------------
+def _circular_layout(
     nodes: list[str],
+    sources: set[str],
     suspicious_nodes: set[str],
     width: int,
     height: int,
-    padding: int = 60,
 ) -> dict[str, tuple[float, float]]:
-    n = len(nodes)
+    if not nodes:
+        return {}
+
+    cx, cy = width / 2, height / 2
     pos: dict[str, tuple[float, float]] = {}
-    if n == 0:
-        return pos
 
-    sus  = [v for v in nodes if v in suspicious_nodes]
-    norm = [v for v in nodes if v not in suspicious_nodes]
+    src_list  = [n for n in nodes if n in sources]
+    rest_list = [n for n in nodes if n not in sources]
 
-    w = width  - 2 * padding
-    h = height - 2 * padding
+    # Сортируем: подозрительные узлы группируем вместе на кольце
+    rest_list.sort(key=lambda n: (0 if n in suspicious_nodes else 1, n))
 
-    if n <= 16:
-        def row_x(items, y, row_w, row_padding):
-            if not items:
-                return
-            step = row_w / max(len(items), 1)
-            for i, node in enumerate(items):
-                x = row_padding + step * i + step / 2
-                pos[node] = (x, y)
+    total_outer = len(rest_list)
 
-        if sus and norm:
-            row_x(sus,  padding + h * 0.25, width, padding)
-            row_x(norm, padding + h * 0.72, width, padding)
-        elif sus:
-            row_x(sus, height / 2, width, padding)
-        else:
-            row_x(norm, height / 2, width, padding)
+    if len(src_list) == 1 and total_outer > 0:
+        # Один исток — в центре, остальные по кругу
+        pos[src_list[0]] = (cx, cy)
+
+        r_outer = min(cx, cy) - 60
+        for i, node in enumerate(rest_list):
+            # Начинаем с верхней точки (-π/2), по часовой
+            angle = -math.pi / 2 + 2 * math.pi * i / total_outer
+            pos[node] = (cx + r_outer * math.cos(angle),
+                         cy + r_outer * math.sin(angle))
+
+    elif len(src_list) == 0:
+        # Нет явного истока — все по кругу
+        all_nodes = rest_list
+        r = min(cx, cy) - 60
+        for i, node in enumerate(all_nodes):
+            angle = -math.pi / 2 + 2 * math.pi * i / max(len(all_nodes), 1)
+            pos[node] = (cx + r * math.cos(angle),
+                         cy + r * math.sin(angle))
+
     else:
-        cols = math.ceil(math.sqrt(n))
-        rows = math.ceil(n / cols)
-        for idx, node in enumerate(sus + norm):
-            col = idx % cols
-            row = idx // cols
-            x = padding + col * (w / max(cols - 1, 1))
-            y = padding + row * (h / max(rows - 1, 1))
-            pos[node] = (x, y)
+        # Несколько истоков — внутреннее кольцо + внешнее
+        n_inner = len(src_list)
+        n_outer = total_outer
+
+        r_inner = min(cx, cy) * 0.38
+        r_outer = min(cx, cy) - 60
+
+        for i, node in enumerate(src_list):
+            angle = -math.pi / 2 + 2 * math.pi * i / max(n_inner, 1)
+            pos[node] = (cx + r_inner * math.cos(angle),
+                         cy + r_inner * math.sin(angle))
+
+        for i, node in enumerate(rest_list):
+            angle = -math.pi / 2 + 2 * math.pi * i / max(n_outer, 1)
+            pos[node] = (cx + r_outer * math.cos(angle),
+                         cy + r_outer * math.sin(angle))
 
     return pos
 
-# SVG-примитивы
 
+# ---------------------------------------------------------------------------
+# SVG-примитивы
+# ---------------------------------------------------------------------------
 def _svg_marker(marker_id: str, color: str) -> str:
     return (
-        f'<marker id="{marker_id}" markerWidth="9" markerHeight="9" '
-        f'refX="7" refY="3" orient="auto">'
-        f'<path d="M0,0 L0,6 L9,3 z" fill="{color}"/>'
+        f'<marker id="{marker_id}" markerWidth="8" markerHeight="8" '
+        f'refX="6" refY="4" orient="auto" markerUnits="strokeWidth">'
+        f'<path d="M0,0 L0,8 L8,4 z" fill="{color}"/>'
         f'</marker>'
     )
 
 
 def _node_radius(label: str) -> int:
-    return max(28, min(36, 10 + len(label) * 3))
+    return max(28, min(38, 10 + len(label) * 3))
 
 
-def _svg_edge(
+def _svg_edge_curve(
     x1: float, y1: float,
     x2: float, y2: float,
     r1: int, r2: int,
-    label: str,
+    tx_number: int,
     color: str,
     marker_id: str,
+    curvature: float = 0.0,   # 0 = прямая, >0 = кривая влево, <0 = вправо
 ) -> str:
+    """
+    Рисует квадратичную кривую Безье между двумя узлами.
+    curvature задаёт насколько сильно и в какую сторону изогнута линия.
+    """
     dx, dy = x2 - x1, y2 - y1
     dist = math.hypot(dx, dy) or 1
     ux, uy = dx / dist, dy / dist
+    # перпендикуляр
+    px, py = -uy, ux
 
-    sx, sy = x1 + ux * r1, y1 + uy * r1
-    ex, ey = x2 - ux * r2, y2 - uy * r2
+    # Контрольная точка Безье — смещение перпендикулярно к середине
+    mid_x = (x1 + x2) / 2 + px * curvature
+    mid_y = (y1 + y2) / 2 + py * curvature
 
-    mx, my = (sx + ex) / 2, (sy + ey) / 2
-    px, py = -uy * 12, ux * 12
+    # Начало и конец у границ узлов
+    # Для кривой Безье направление в начале/конце определяется контрольной точкой
+    # Находим направление от start к control point и от control к end
+    def border_point(ox, oy, tx, ty, r):
+        ddx, ddy = tx - ox, ty - oy
+        d = math.hypot(ddx, ddy) or 1
+        return ox + ddx / d * r, oy + ddy / d * r
 
-    line = (
-        f'<line x1="{sx:.1f}" y1="{sy:.1f}" x2="{ex:.1f}" y2="{ey:.1f}" '
-        f'stroke="{color}" stroke-width="2.2" '
+    sx, sy = border_point(x1, y1, mid_x, mid_y, r1)
+    ex, ey = border_point(x2, y2, mid_x, mid_y, r2)
+
+    # Середина кривой для бейджика (параметр t=0.5 квадратичного Безье)
+    bx = 0.25 * x1 + 0.5 * mid_x + 0.25 * x2
+    by = 0.25 * y1 + 0.5 * mid_y + 0.25 * y2
+    # Немного смещаем бейджик чтобы не лежал прямо на линии
+    badge_off = 12 if curvature >= 0 else -12
+    bx += px * badge_off * 0.3
+    by += py * badge_off * 0.3
+
+    path = (
+        f'<path d="M{sx:.1f},{sy:.1f} Q{mid_x:.1f},{mid_y:.1f} {ex:.1f},{ey:.1f}" '
+        f'fill="none" stroke="{color}" stroke-width="2.5" opacity="0.85" '
         f'marker-end="url(#{marker_id})"/>'
     )
-    text = (
-        f'<text x="{mx + px:.1f}" y="{my + py:.1f}" '
-        f'text-anchor="middle" font-size="9" font-weight="700" fill="{color}" '
-        f'font-family="Courier New, monospace">{_fmt_amount(label)}</text>'
+    badge = (
+        f'<circle cx="{bx:.1f}" cy="{by:.1f}" r="11" '
+        f'fill="white" stroke="{color}" stroke-width="1.5" opacity="0.97"/>'
     )
-    return line + '\n' + text
+    num_label = (
+        f'<text x="{bx:.1f}" y="{by + 4:.1f}" '
+        f'text-anchor="middle" font-size="9" font-weight="800" fill="{color}" '
+        f'font-family="inherit">{tx_number}</text>'
+    )
+    return path + '\n' + badge + '\n' + num_label
 
 
 def _svg_node(
@@ -107,17 +172,14 @@ def _svg_node(
     )
     if len(label) > 6:
         top, bot = label[:6], label[6:]
-        t1 = (
+        texts = (
             f'<text x="{x:.1f}" y="{y - 5:.1f}" text-anchor="middle" '
             f'font-size="9" font-weight="800" fill="{text_color}" '
             f'font-family="inherit">{top}</text>'
-        )
-        t2 = (
             f'<text x="{x:.1f}" y="{y + 7:.1f}" text-anchor="middle" '
             f'font-size="9" font-weight="800" fill="{text_color}" '
             f'font-family="inherit">{bot}</text>'
         )
-        texts = t1 + t2
     else:
         dy = -3 if is_start else 4
         sub = (
@@ -132,33 +194,23 @@ def _svg_node(
     return circle + '\n' + texts
 
 
-def _fmt_amount(val) -> str:
-    try:
-        f = float(val)
-        if f >= 1_000_000:
-            return f'{f / 1_000_000:.1f}M'
-        if f >= 1_000:
-            return f'{f / 1_000:.1f}k'
-        return f'{f:.0f}'
-    except Exception:
-        return str(val)
-
+# ---------------------------------------------------------------------------
 # Легенда и заглушка
-
+# ---------------------------------------------------------------------------
 def _svg_legend(width: int, height: int) -> str:
-    lw, lh = 190, 60
+    lw, lh = 200, 60
     lx = width - lw - 12
     ly = height - lh - 12
     return (
         f'<rect x="{lx}" y="{ly}" width="{lw}" height="{lh}" rx="8" '
-        f'fill="white" stroke="{COLOR_GRID}" stroke-width="1.5" opacity="0.92"/>'
-        f'<line x1="{lx+12}" y1="{ly+18}" x2="{lx+36}" y2="{ly+18}" '
+        f'fill="white" stroke="{COLOR_GRID}" stroke-width="1.5" opacity="0.95"/>'
+        f'<line x1="{lx+12}" y1="{ly+18}" x2="{lx+38}" y2="{ly+18}" '
         f'stroke="{COLOR_SUS_EDGE}" stroke-width="2.5"/>'
-        f'<text x="{lx+42}" y="{ly+22}" font-size="9.5" fill="#475569" '
+        f'<text x="{lx+44}" y="{ly+22}" font-size="9.5" fill="#475569" '
         f'font-weight="600" font-family="inherit">⚠ Подозрительная цепочка</text>'
-        f'<line x1="{lx+12}" y1="{ly+40}" x2="{lx+36}" y2="{ly+40}" '
+        f'<line x1="{lx+12}" y1="{ly+40}" x2="{lx+38}" y2="{ly+40}" '
         f'stroke="{COLOR_NORM_EDGE}" stroke-width="2"/>'
-        f'<text x="{lx+42}" y="{ly+44}" font-size="9.5" fill="#475569" '
+        f'<text x="{lx+44}" y="{ly+44}" font-size="9.5" fill="#475569" '
         f'font-weight="600" font-family="inherit">✓ Обычный перевод</text>'
     )
 
@@ -174,13 +226,15 @@ def _empty_svg(width: int, height: int) -> str:
         f'</svg>'
     )
 
-# Основная функция: только SVG
 
+# ---------------------------------------------------------------------------
+# Основная функция: только SVG
+# ---------------------------------------------------------------------------
 def render_graph_svg(
     transactions: list[dict],
     suspicious_paths: list[dict] | None = None,
-    width: int = 680,
-    height: int = 460,
+    width: int = 720,
+    height: int = 520,
 ) -> str:
 
     if not transactions:
@@ -202,12 +256,13 @@ def render_graph_svg(
         all_nodes_set.add(tx['sender'])
         all_nodes_set.add(tx['receiver'])
 
-    receivers = {tx['receiver'] for tx in transactions}
-    sources   = {tx['sender'] for tx in transactions} - receivers
-    ordered   = sorted(sources) + sorted(all_nodes_set - sources)
+    all_nodes = sorted(all_nodes_set)
 
-    pos    = _layout_nodes(ordered, sus_nodes, width, height)
-    radii  = {node: _node_radius(node) for node in ordered}
+    receivers = {tx['receiver'] for tx in transactions}
+    sources   = {tx['sender']   for tx in transactions} - receivers
+
+    pos   = _circular_layout(all_nodes, sources, sus_nodes, width, height)
+    radii = {node: _node_radius(node) for node in all_nodes}
 
     defs = (
         '<defs>'
@@ -216,28 +271,61 @@ def render_graph_svg(
         + '</defs>'
     )
 
+    # Считаем количество рёбер между каждой парой для правильного curvature
+    pair_count: dict[tuple, int] = {}
+    pair_index: dict[tuple, int] = {}
+    for tx in transactions:
+        key = (tx['sender'], tx['receiver'])
+        pair_count[key] = pair_count.get(key, 0) + 1
+
+    # Базовая кривизна зависит от расстояния между узлами
+    # Чем ближе — тем сильнее кривая (иначе бейджик залезет на узел)
+    CURVE_BASE = 40  # пикселей
+
     edges_svg = []
     nodes_svg = []
 
-    for tx in transactions:
+    for i, tx in enumerate(transactions):
         s, r = tx['sender'], tx['receiver']
         if s not in pos or r not in pos:
             continue
         x1, y1 = pos[s]
         x2, y2 = pos[r]
+
         is_sus    = (s, r) in sus_edges
         color     = COLOR_SUS_EDGE  if is_sus else COLOR_NORM_EDGE
         marker_id = 'arr-sus'       if is_sus else 'arr-norm'
+
+        key = (s, r)
+        idx = pair_index.get(key, 0)
+        pair_index[key] = idx + 1
+        total = pair_count[key]
+
+        # Распределяем кривизну симметрично: [-curve, 0, +curve] и т.д.
+        # Для одного ребра — небольшой изгиб чтобы не сливалось с обратным
+        if total == 1:
+            # Проверяем нет ли обратного ребра — тогда изгибаем
+            has_reverse = (r, s) in pair_count
+            curvature = CURVE_BASE * 0.6 if has_reverse else 0.0
+        else:
+            step = CURVE_BASE * 1.2
+            curvature = (idx - (total - 1) / 2) * step
+
         edges_svg.append(
-            _svg_edge(x1, y1, x2, y2, radii[s], radii[r],
-                      str(tx['amount']), color, marker_id)
+            _svg_edge_curve(
+                x1, y1, x2, y2,
+                radii[s], radii[r],
+                i + 1,
+                color, marker_id,
+                curvature=curvature,
+            )
         )
 
-    for node in ordered:
+    for node in all_nodes:
         if node not in pos:
             continue
-        x, y   = pos[node]
-        r      = radii[node]
+        x, y     = pos[node]
+        r        = radii[node]
         is_start = node in sources
         is_sus   = node in sus_nodes
 
@@ -255,10 +343,9 @@ def render_graph_svg(
     legend = _svg_legend(width, height)
     inner  = '\n'.join(edges_svg) + '\n' + '\n'.join(nodes_svg) + '\n' + legend
 
-    # Весь контент оборачиваем в <g id="scene"> — JS будет двигать именно его
     svg = (
         f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg" '
-        f'style="width:100%;height:100%;display:block;">'
+        f'style="width:100%;height:100%;display:block;" overflow="visible">'
         f'{defs}'
         f'<rect width="{width}" height="{height}" fill="{COLOR_BG}" rx="14"/>'
         f'<g id="dfs-scene">'
@@ -269,7 +356,9 @@ def render_graph_svg(
     return svg
 
 
-# Обёртка: SVG + HTML-контейнер с pan/zoom
+# ---------------------------------------------------------------------------
+# JS pan/zoom (без изменений)
+# ---------------------------------------------------------------------------
 _JS = """
 <script>
 (function() {
@@ -288,7 +377,6 @@ _JS = """
       'translate(' + tx + ',' + ty + ') scale(' + scale + ')');
     if (lbl) lbl.textContent = Math.round(scale * 100) + '%';
   }
-
   function clamp() {
     var W = wrap.clientWidth  || SVG_W;
     var H = wrap.clientHeight || SVG_H;
@@ -297,8 +385,6 @@ _JS = """
     tx = Math.min(margin, Math.max(W - gw - margin, tx));
     ty = Math.min(margin, Math.max(H - gh - margin, ty));
   }
-
-  /* ---- мышь ---- */
   wrap.addEventListener('mousedown', function(e) {
     if (e.button !== 0) return;
     dragging = true;
@@ -313,8 +399,6 @@ _JS = """
     clamp(); apply();
   });
   window.addEventListener('mouseup', function() { dragging = false; });
-
-  /* ---- колёсико ---- */
   wrap.addEventListener('wheel', function(e) {
     e.preventDefault();
     var rect  = wrap.getBoundingClientRect();
@@ -326,72 +410,58 @@ _JS = """
     ty = my - (my - ty) * (ns / scale);
     scale = ns; clamp(); apply();
   }, { passive: false });
-
-  /* ---- двойной клик — сброс ---- */
   wrap.addEventListener('dblclick', function() {
     scale = 1; tx = 0; ty = 0; apply();
   });
-
-  /* ---- кнопки ---- */
   function zoomBtn(dir) {
-    var W  = wrap.clientWidth  || SVG_W;
-    var H  = wrap.clientHeight || SVG_H;
-    var cx = W / 2, cy = H / 2;
-    var d  = dir > 0 ? 1.25 : 1 / 1.25;
+    var W = wrap.clientWidth || SVG_W, H = wrap.clientHeight || SVG_H;
+    var cx = W/2, cy = H/2;
+    var d = dir > 0 ? 1.25 : 1/1.25;
     var ns = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * d));
-    tx = cx - (cx - tx) * (ns / scale);
-    ty = cy - (cy - ty) * (ns / scale);
+    tx = cx - (cx - tx) * (ns/scale);
+    ty = cy - (cy - ty) * (ns/scale);
     scale = ns; clamp(); apply();
   }
-  var btnIn    = document.getElementById('DFS_BTN_IN_ID');
-  var btnOut   = document.getElementById('DFS_BTN_OUT_ID');
-  var btnReset = document.getElementById('DFS_BTN_RST_ID');
-  if (btnIn)    btnIn.onclick    = function() { zoomBtn(1); };
-  if (btnOut)   btnOut.onclick   = function() { zoomBtn(-1); };
-  if (btnReset) btnReset.onclick = function() { scale=1; tx=0; ty=0; apply(); };
-
-  /* ---- пинч-зум (touch) ---- */
-  var tStartX=0, tStartY=0, tStartTx=0, tStartTy=0;
-  var pinchDist=0, pinchTx=0, pinchTy=0, pinchScale=1;
-
+  var btnIn  = document.getElementById('DFS_BTN_IN_ID');
+  var btnOut = document.getElementById('DFS_BTN_OUT_ID');
+  var btnRst = document.getElementById('DFS_BTN_RST_ID');
+  if (btnIn)  btnIn.onclick  = function() { zoomBtn(1); };
+  if (btnOut) btnOut.onclick = function() { zoomBtn(-1); };
+  if (btnRst) btnRst.onclick = function() { scale=1; tx=0; ty=0; apply(); };
+  var tStartX=0,tStartY=0,tStartTx=0,tStartTy=0;
+  var pinchDist=0,pinchTx=0,pinchTy=0,pinchScale=1;
   wrap.addEventListener('touchstart', function(e) {
     e.preventDefault();
-    if (e.touches.length === 1) {
-      dragging = true;
-      tStartX = e.touches[0].clientX; tStartY = e.touches[0].clientY;
-      tStartTx = tx; tStartTy = ty;
-    } else if (e.touches.length === 2) {
-      dragging = false;
-      pinchDist   = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY);
-      pinchTx = tx; pinchTy = ty; pinchScale = scale;
+    if (e.touches.length===1) {
+      dragging=true;
+      tStartX=e.touches[0].clientX; tStartY=e.touches[0].clientY;
+      tStartTx=tx; tStartTy=ty;
+    } else if (e.touches.length===2) {
+      dragging=false;
+      pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
+                           e.touches[0].clientY-e.touches[1].clientY);
+      pinchTx=tx; pinchTy=ty; pinchScale=scale;
     }
-  }, { passive: false });
-
+  }, {passive:false});
   wrap.addEventListener('touchmove', function(e) {
     e.preventDefault();
-    if (e.touches.length === 1 && dragging) {
-      tx = tStartTx + (e.touches[0].clientX - tStartX);
-      ty = tStartTy + (e.touches[0].clientY - tStartY);
+    if (e.touches.length===1 && dragging) {
+      tx=tStartTx+(e.touches[0].clientX-tStartX);
+      ty=tStartTy+(e.touches[0].clientY-tStartY);
       clamp(); apply();
-    } else if (e.touches.length === 2) {
-      var dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY);
-      var ns = Math.min(MAX_SCALE, Math.max(MIN_SCALE,
-        pinchScale * dist / pinchDist));
-      var rect = wrap.getBoundingClientRect();
-      var cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
-      var cy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
-      tx = cx - (cx - pinchTx) * (ns / pinchScale);
-      ty = cy - (cy - pinchTy) * (ns / pinchScale);
-      scale = ns; clamp(); apply();
+    } else if (e.touches.length===2) {
+      var dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
+                          e.touches[0].clientY-e.touches[1].clientY);
+      var ns=Math.min(MAX_SCALE,Math.max(MIN_SCALE,pinchScale*dist/pinchDist));
+      var rect=wrap.getBoundingClientRect();
+      var cx=(e.touches[0].clientX+e.touches[1].clientX)/2-rect.left;
+      var cy=(e.touches[0].clientY+e.touches[1].clientY)/2-rect.top;
+      tx=cx-(cx-pinchTx)*(ns/pinchScale);
+      ty=cy-(cy-pinchTy)*(ns/pinchScale);
+      scale=ns; clamp(); apply();
     }
-  }, { passive: false });
-
-  wrap.addEventListener('touchend', function() { dragging = false; });
-
+  }, {passive:false});
+  wrap.addEventListener('touchend', function() { dragging=false; });
   apply();
 })();
 </script>
@@ -401,19 +471,18 @@ _JS = """
 def render_graph_html(
     transactions: list[dict],
     suspicious_paths: list[dict] | None = None,
-    width: int = 680,
-    height: int = 460,
-    container_height: int = 480,
+    width: int = 720,
+    height: int = 520,
+    container_height: int = 540,
 ) -> str:
-    # Уникальные ID, чтобы несколько графов на одной странице не конфликтовали
     import hashlib, os
     uid = hashlib.md5(os.urandom(8)).hexdigest()[:6]
 
-    wrap_id   = f'dfs-wrap-{uid}'
-    lbl_id    = f'dfs-lbl-{uid}'
-    btn_in    = f'dfs-in-{uid}'
-    btn_out   = f'dfs-out-{uid}'
-    btn_rst   = f'dfs-rst-{uid}'
+    wrap_id = f'dfs-wrap-{uid}'
+    lbl_id  = f'dfs-lbl-{uid}'
+    btn_in  = f'dfs-in-{uid}'
+    btn_out = f'dfs-out-{uid}'
+    btn_rst = f'dfs-rst-{uid}'
 
     svg = render_graph_svg(transactions, suspicious_paths, width, height)
 
@@ -422,48 +491,24 @@ def render_graph_html(
         f'<button class="dfs-ctrl-btn" id="{btn_in}"  title="Увеличить">+</button>'
         f'<div    class="dfs-zoom-lbl" id="{lbl_id}">100%</div>'
         f'<button class="dfs-ctrl-btn" id="{btn_out}" title="Уменьшить">&#8722;</button>'
-        f'<button class="dfs-ctrl-btn" id="{btn_rst}" title="Сбросить"  style="font-size:13px">&#8962;</button>'
+        f'<button class="dfs-ctrl-btn" id="{btn_rst}" title="Сбросить" style="font-size:13px">&#8962;</button>'
         f'</div>'
     )
-
     hint = '<span class="dfs-hint">Тащи · колёсико — зум · двойной клик — сброс</span>'
 
     js = (
         _JS
-        .replace('DFS_WRAP_ID',   wrap_id)
-        .replace('DFS_LBL_ID',    lbl_id)
-        .replace('DFS_BTN_IN_ID', btn_in)
-        .replace('DFS_BTN_OUT_ID',btn_out)
-        .replace('DFS_BTN_RST_ID',btn_rst)
-        .replace('DFS_SVG_W',     str(width))
-        .replace('DFS_SVG_H',     str(height))
+        .replace('DFS_WRAP_ID',    wrap_id)
+        .replace('DFS_LBL_ID',     lbl_id)
+        .replace('DFS_BTN_IN_ID',  btn_in)
+        .replace('DFS_BTN_OUT_ID', btn_out)
+        .replace('DFS_BTN_RST_ID', btn_rst)
+        .replace('DFS_SVG_W',      str(width))
+        .replace('DFS_SVG_H',      str(height))
     )
 
-    html = (
+    return (
         f'<div class="dfs-graph-wrap" id="{wrap_id}" '
         f'style="height:{container_height}px;">'
-        + svg
-        + controls
-        + hint
-        + f'</div>'
-        + js
+        + svg + controls + hint + '</div>' + js
     )
-    return html
-
-# Цветовая палитра
-
-COLOR_SUS_FILL   = '#fff5f5'
-COLOR_SUS_STROKE = '#ef4444'
-COLOR_SUS_TEXT   = '#b91c1c'
-COLOR_SUS_EDGE   = '#ef4444'
-
-COLOR_NORM_FILL   = '#f0f9ff'
-COLOR_NORM_STROKE = '#38bdf8'
-COLOR_NORM_TEXT   = '#0c4a6e'
-COLOR_NORM_EDGE   = '#0ea5e9'
-
-COLOR_START_FILL  = '#0f172a'
-COLOR_START_TEXT  = '#ffffff'
-
-COLOR_BG   = '#f8fafc'
-COLOR_GRID = '#e2e8f0'

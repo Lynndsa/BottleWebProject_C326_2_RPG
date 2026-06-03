@@ -320,6 +320,12 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
                     </div>
                 </div>
 
+                % if _errors.get('tx_file') or _errors.get('transactions'):
+                <div class="error-banner">
+                    ❌ {{_errors.get('tx_file') or _errors.get('transactions')}}
+                </div>
+                % end
+
                 <div class="form-field">
                     <label class="form-label" for="threshold">Порог подозрительности <span class="hint">(кол-во транзакций)</span></label>
                     <div class="threshold-control">
@@ -391,13 +397,14 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
                 <span class="tx-count-badge"><span id="tx-row-count">0</span> валидных</span>
             </h2>
             <div class="tx-editor-actions">
+                <button type="button" id="tx-reset-table" class="btn btn--danger-soft">🗑 Сбросить таблицу</button>
                 <button type="button" id="tx-save-file" class="btn">💾 Сохранить .txt</button>
             </div>
         </div>
 
         <div class="tx-table-scroll">
             <table class="tx-edit-table" id="tx-main-table"
-                   data-initial-rows="{{!__import__('json').dumps([{'sender': r.get('sender',''), 'receiver': r.get('receiver',''), 'amount': str(r.get('amount','')), 'timestamp': str(r.get('timestamp',''))} for r in (_parsed_file or []) if r.get('valid', True)])}}">
+                   data-initial-rows='{{!__import__('json').dumps([{"sender": r.get("sender",""), "receiver": r.get("receiver",""), "amount": str(r.get("amount","")), "timestamp": str(r.get("timestamp",""))} for r in (_parsed_file or []) if r.get("valid", True)])}}'>
                 <thead>
                     <tr>
                         <th>#</th>
@@ -514,16 +521,58 @@ function copyExample() {
 }
 
 function handleFileUpload(input) {
-    // Читаем файл в таблицу 
     const file = input.files[0];
     if (!file) return;
+
+    // Проверяем расширение
+    if (!file.name.toLowerCase().endsWith('.txt')) {
+        showFileError('❌ Неверный формат файла. Принимается только .txt');
+        input.value = '';
+        return;
+    }
+
+    // Проверяем размер
+    if (file.size === 0) {
+        showFileError('❌ Файл пустой.');
+        input.value = '';
+        return;
+    }
+
+    if (file.size > 1024 * 1024) {
+        showFileError('❌ Файл слишком большой (максимум 1 МБ).');
+        input.value = '';
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = e => {
-        if (window.txTableLoadFile) window.txTableLoadFile(e.target.result);
+        hideFileError();
+        if (window.txTableLoadFile) window.txTableLoadFile(e.target.result, file.name);
+    };
+    reader.onerror = () => {
+        showFileError('❌ Не удалось прочитать файл.');
     };
     reader.readAsText(file, 'utf-8');
-    // сбрасываем input, чтобы можно было загрузить тот же файл повторно
     input.value = '';
 }
+
+function showFileError(msg) {
+    let banner = document.getElementById('file-error-banner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'file-error-banner';
+        banner.className = 'error-banner';
+        // вставляем после card-header
+        const cardHeader = document.querySelector('.card-header');
+        if (cardHeader) cardHeader.after(banner);
+    }
+    banner.textContent = msg;
+    banner.style.display = 'flex';
+}
+
+function hideFileError() {
+    const banner = document.getElementById('file-error-banner');
+    if (banner) banner.style.display = 'none';
+}
 </script>
-<script src="/static/content/tx_table.js"></script>
+<script src="/static/scripts/tx_table.js"></script>

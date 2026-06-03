@@ -1,28 +1,12 @@
-"""
-dfs_algorithm.py — DFS-анализ графа финансовых транзакций.
-
-Задача (Вариант 3): найти ОДИН самый длинный путь без циклов
-(максимальная по числу рёбер последовательность переводов).
-При равной длине побеждает путь с максимальной суммой.
-Путь помечается подозрительным, если его длина >= threshold.
-"""
-
 from collections import defaultdict
-
 
 Transaction = dict
 PathResult  = dict
 
-
-# ---------------------------------------------------------------------------
 # Построение графа
-# ---------------------------------------------------------------------------
 
 def build_graph(transactions: list[Transaction]) -> dict[str, list[tuple]]:
-    """
-    Список смежности: adj[sender] = [(receiver, amount, timestamp), ...]
-    Рёбра каждой вершины отсортированы по возрастанию timestamp.
-    """
+# Список смежности с сортировкой вершин
     adj: dict[str, list[tuple]] = defaultdict(list)
     for tx in transactions:
         adj[tx['sender']].append((
@@ -43,9 +27,7 @@ def get_all_nodes(transactions: list[Transaction]) -> set[str]:
     return nodes
 
 
-# ---------------------------------------------------------------------------
 # DFS — поиск ОДНОГО самого длинного пути
-# ---------------------------------------------------------------------------
 
 def _dfs(
     node: str,
@@ -56,10 +38,8 @@ def _dfs(
     last_ts: int,
     best: list,          # best[0] = лучший PathResult на данный момент
 ) -> None:
-    """
-    Рекурсивный DFS с backtracking.
-    Обновляет best[0] если текущий путь длиннее (или длиннее по сумме при равной длине).
-    """
+    # Рекурсивный DFS с backtracking. Обновляет best[0] если текущий путь длиннее (или длиннее по сумме при равной длине).
+
     neighbors = adj.get(node, [])
     has_valid_neighbor = False
 
@@ -112,21 +92,6 @@ def find_longest_path(
     transactions: list[Transaction],
     threshold: int = 4,
 ) -> dict:
-    """
-    Главная функция: находит ОДИН самый длинный бесцикловый путь в графе.
-
-    Возвращает dict:
-    {
-        'path':             PathResult | None,   # единственный лучший путь
-        'paths':            [PathResult] | [],   # список из одного пути (для совместимости с шаблоном)
-        'total_tx':         int,
-        'total_wallets':    int,
-        'max_chain_len':    int,
-        'suspicious_count': int,
-        'threshold':        int,
-        'transactions':     list[dict],
-    }
-    """
     if not transactions:
         return _empty_result(threshold)
 

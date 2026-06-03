@@ -13,6 +13,23 @@ from algorithms.dfs_algorithm import find_longest_path
 from visual.dfs_visual    import render_graph_svg, render_graph_html
 
 
+def _read_file(upload) -> str:
+    """Читает загруженный файл транзакций. При ошибке возвращает пустую строку."""
+    if not upload or not getattr(upload, 'filename', None):
+        return ''
+    try:
+        raw_bytes = upload.file.read()
+        # Пробуем UTF-8, затем cp1251
+        for enc in ('utf-8-sig', 'utf-8', 'cp1251', 'latin-1'):
+            try:
+                return raw_bytes.decode(enc)
+            except UnicodeDecodeError:
+                continue
+        return ''  # не удалось декодировать
+    except Exception:
+        return ''
+
+
 
 @route('/favicon.ico')
 def favicon():

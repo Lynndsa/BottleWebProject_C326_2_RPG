@@ -1,6 +1,5 @@
 /**
  * tx_table.js — интерактивная таблица транзакций
- * Подключить в конце dfs.tpl: <script src="/static/content/tx_table.js"></script>
  */
 (function () {
     'use strict';
@@ -9,11 +8,23 @@
     const tmpl = document.getElementById('tx-row-template');
     const btnAdd = document.getElementById('tx-add-row');
     const btnSave = document.getElementById('tx-save-file');
+    const btnReset = document.getElementById('tx-reset-table');
     const btnRun = document.getElementById('tx-run');
     const btnRandom = document.getElementById('btn-random');
     const countEl = document.getElementById('tx-row-count');
     const hiddenInput = document.getElementById('tx-hidden-input');
     const tableEl = document.getElementById('tx-main-table');
+
+    // Блок для вывода ошибок валидации
+    let errorBox = document.getElementById('tx-validation-errors');
+    if (!errorBox) {
+        errorBox = document.createElement('div');
+        errorBox.id = 'tx-validation-errors';
+        errorBox.style.cssText = 'display:none;margin-top:8px;padding:8px 12px;background:#fff3f3;border:1px solid #e57373;border-radius:4px;color:#c62828;font-size:0.9em;';
+        if (tableEl && tableEl.parentNode) {
+            tableEl.parentNode.insertBefore(errorBox, tableEl.nextSibling);
+        }
+    }
 
     if (!tbody || !tmpl || !hiddenInput) return;
 
@@ -98,11 +109,52 @@
     function validateCell(cell, field) {
         const val = cell.textContent.trim();
         let ok = true;
-        if (field === 'amount') ok = val === '' || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0);
-        else if (field === 'timestamp') ok = val === '' || /^\d+$/.test(val);
-        else ok = val === '' || /^\S+$/.test(val);
+        if (field === 'amount') {
+            ok = val === '' || (!isNaN(parseFloat(val)) && parseFloat(val) > 0);
+        } else if (field === 'timestamp') {
+            ok = val === '' || (/^\d+$/.test(val) && parseInt(val, 10) >= 0);
+        } else {
+            ok = val === '' || /^\S+$/.test(val);
+        }
         cell.classList.toggle('tx-cell--error', !ok);
         return ok;
+    }
+
+    /* ── Получить список ошибок по всем строкам ── */
+    function collectErrors() {
+        const messages = [];
+        rows.forEach((r, i) => {
+            const v = getRowValues(r.el);
+            const rowNum = i + 1;
+
+            // Проверяем только непустые строки
+            const hasAny = v.sender || v.receiver || v.amount || v.timestamp;
+            if (!hasAny) return;
+
+            if (v.sender && v.receiver && v.sender === v.receiver) {
+                messages.push(`Строка ${rowNum}: отправитель и получатель совпадают («${v.sender}»).`);
+            }
+            if (v.amount !== '' && (isNaN(parseFloat(v.amount)) || parseFloat(v.amount) <= 0)) {
+                messages.push(`Строка ${rowNum}: сумма должна быть числом больше 0 (введено: «${v.amount}»).`);
+            }
+            if (v.timestamp !== '' && (!/^\d+$/.test(v.timestamp) || parseInt(v.timestamp, 10) < 0)) {
+                messages.push(`Строка ${rowNum}: метка времени должна быть неотрицательным целым числом (введено: «${v.timestamp}»).`);
+            }
+        });
+        return messages;
+    }
+
+    /* ── Показать / скрыть блок ошибок ── */
+    function showErrors(messages) {
+        if (!errorBox) return;
+        if (messages.length === 0) {
+            errorBox.style.display = 'none';
+            errorBox.innerHTML = '';
+        } else {
+            errorBox.innerHTML = '<strong>⚠ Ошибки в таблице:</strong><ul style="margin:4px 0 0 16px;padding:0">' +
+                messages.map(m => `<li>${m}</li>`).join('') + '</ul>';
+            errorBox.style.display = 'block';
+        }
     }
 
     /* ── Навигация клавишами ── */
@@ -149,14 +201,30 @@
         rows.forEach((r, i) => {
             r.el.querySelector('.tx-cell-num').textContent = i + 1;
         });
+
+        // Подсчёт заполненных строк
         const validCount = rows.filter(r => {
             const v = getRowValues(r.el);
             return v.sender && v.receiver && v.amount && v.timestamp;
         }).length;
         if (countEl) countEl.textContent = validCount;
+
+        // Собираем ошибки
+        const errorMessages = collectErrors();
+        showErrors(errorMessages);
+
+        // Блокируем кнопки при наличии ошибок или пустой таблице
+        const hasErrors = errorMessages.length > 0;
+        const isDisabled = validCount === 0 || hasErrors;
+
         if (btnRun) {
-            btnRun.disabled = validCount === 0;
-            btnRun.classList.toggle('btn--primary--disabled', validCount === 0);
+            btnRun.disabled = isDisabled;
+            btnRun.classList.toggle('btn--primary--disabled', isDisabled);
+        }
+        if (btnSave) {
+            btnSave.disabled = isDisabled;
+            btnSave.style.opacity = isDisabled ? '0.5' : '';
+            btnSave.style.cursor = isDisabled ? 'not-allowed' : '';
         }
     }
 
@@ -171,15 +239,34 @@
     }
 
     /* ── Публичный API для handleFileUpload ── */
-    window.txTableLoadFile = function (text) {
-        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    window.txTableLoadFile = function (text, filename) {
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+
+        if (lines.length === 0) {
+            if (window.showFileError) showFileError('❌ Файл не содержит данных (все строки пустые или комментарии).');
+            return;
+        }
+
         const data = lines.map(line => {
             const parts = line.split(/\s+/);
             return parts.length >= 4
                 ? { sender: parts[0], receiver: parts[1], amount: parts[2], timestamp: parts[3] }
-                : { sender: line, receiver: '', amount: '', timestamp: '' };
+                : null;
         });
-        loadRows(data);
+
+        const valid = data.filter(r => r !== null);
+        if (valid.length === 0) {
+            if (window.showFileError) showFileError('❌ Некорректный формат данных. Каждая строка должна содержать: отправитель получатель сумма метка_времени');
+            return;
+        }
+
+        if (valid.length < data.length) {
+            if (window.showFileError) showFileError(`⚠ Загружено ${valid.length} из ${data.length} строк. Остальные пропущены (неверный формат).`);
+        } else {
+            if (window.hideFileError) hideFileError();
+        }
+
+        loadRows(valid);
     };
 
     /* ── Кнопка «Случайный» — fetch без перезагрузки ── */
@@ -211,16 +298,32 @@
     /* ── Сохранить в .txt ── */
     if (btnSave) {
         btnSave.addEventListener('click', () => {
+            if (btnSave.disabled) return;
             const lines = rows
                 .map(r => getRowValues(r.el))
                 .filter(v => v.sender && v.receiver && v.amount && v.timestamp)
                 .map(v => `${v.sender} ${v.receiver} ${v.amount} ${v.timestamp}`);
             if (!lines.length) return;
-            const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ` +
+                `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            const header = `# Сохранено: ${dateStr}`;
+            const fileDate = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_` +
+                `${pad(now.getHours())}${pad(now.getMinutes())}`;
+            const text = [header, ...lines].join('\n');
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = 'transactions.txt'; a.click();
+            a.href = url; a.download = `transactions_${fileDate}.txt`; a.click();
             URL.revokeObjectURL(url);
+        });
+    }
+
+    if (btnReset) {
+        btnReset.addEventListener('click', () => {
+            if (!confirm('Очистить таблицу? Все введённые данные будут удалены.')) return;
+            loadRows([]);
         });
     }
 
