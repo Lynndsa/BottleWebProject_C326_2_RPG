@@ -21,6 +21,9 @@
     <InterpreterId>
     </InterpreterId>
     <SuppressPackageInstallationPrompt>True</SuppressPackageInstallationPrompt>
+    <TestFramework>unittest</TestFramework>
+    <UnitTestPattern>test*.py</UnitTestPattern>
+    <UnitTestRootDirectory>test</UnitTestRootDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,7 +44,18 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="app.py" />
-    <Compile Include="tools\tsp_tools.py"/>
+    <Compile Include="test\test_bfs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_dfs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_tsp.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tools\dfs_tools.py">
       <SubType>Code</SubType>
     </Compile>
@@ -67,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="algorithms\" />
+    <Folder Include="test\" />
     <Folder Include="visual\" />
     <Folder Include="tools\" />
     <Folder Include="static\content\image\" />

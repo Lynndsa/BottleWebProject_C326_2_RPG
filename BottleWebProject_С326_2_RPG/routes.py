@@ -22,6 +22,20 @@ from validators.bfs_validator import validate_bfs_params
 from visual.bfs_visual import create_graph_from_edges, generate_graph_svg, generate_infection_chart
 from tools.bfs_tools import parse_bfs_config_file, generate_random_bfs_network
 
+﻿# -*- coding: utf-8 -*-
+import pickle
+import os
+import json
+from tools.tsp_tools import generate_random_graph
+from bottle import route, view, static_file, run, template, request, response
+from tools.dfs_tools    import generate_transactions, transactions_to_text
+from validators.dfs_validator import parse_transactions, filter_valid, validate_params
+from algorithms.dfs_algorithm import find_longest_path
+from visual.dfs_visual    import render_graph_svg, render_graph_html
+from tools.tsp_tools import generate_random_graph, build_zip,log_to_file
+from validators.tsp_validator import parse_input, parse_txt_file
+from visual.tsp_visual import build_svg
+from algorithms.tsp_algorithm import solve_tsp, get_full_path,dijkstra_simple
 
 @route('/favicon.ico')
 def favicon():
@@ -152,18 +166,83 @@ def _tsp_defaults():
 def tsp_get():
     return template('tsp', **_tsp_defaults())
 
+@route('/tsp/random', method='POST')
+def tsp_random():
+    raw = generate_random_graph()
+    form = {'n': raw['n'], 'm': raw['m'], 'k': raw['k'], 'sites': raw['sites']}
+    for i, line in enumerate(raw['edges'].strip().splitlines(), 1):
+        parts = line.strip().split()
+        if len(parts) == 3:
+            form[f'u_{i}'] = parts[0]
+            form[f'v_{i}'] = parts[1]
+            form[f'w_{i}'] = parts[2]
+    return template('tsp', **_tsp_defaults(), form=form, errors={})
+
+@route('/tsp/download/<result_id>', method='GET')
+def tsp_download(result_id):
+    path = f'tmp_results/{result_id}.pkl'
+    if not os.path.exists(path):
+        return 'Данные устарели или не найдены'
+
+    with open(path, 'rb') as f:
+        data = pickle.load(f)
+
+    zip_buf = build_zip(
+        graph_data={
+            'graph':       data['graph'],
+            'best_path':   data['best_path'],
+            'full_path':   data['full_path'],
+            'hotel':       data['hotel'],
+            'unreachable': data['unreachable']
+        },
+        form_data={'hotel': data['log']['hotel'], 'targets': data['log']['targets']},
+        result_data={'path': data['log']['path'], 'dist': data['log']['dist']}
+    )
+
+    response.content_type = 'application/zip'
+    response.headers['Content-Disposition'] = 'attachment; filename="tsp_result.zip"'
+    return zip_buf.getvalue()
 
 @route('/tsp', method='POST')
 def tsp_post():
-    upload = request.files.get('txt_file')
 
+#  Загрузка из файла
+    upload = request.files.get('txt_file')
     if upload and upload.filename:
+        filename = upload.filename.lower()
+        if not filename.endswith(('.txt', '.json')):
+            return template(
+                'tsp',
+                **_tsp_defaults(),
+                errors={'global': 'Можно загружать только файлы формата .txt или .json'}
+            )
         try:
             content = upload.file.read().decode('utf-8')
         except Exception:
             return template('tsp', **_tsp_defaults(), errors={'global': 'Не удалось прочитать файл'})
 
-        form_data, errors = parse_txt_file(content)
+        # JSON формат
+        if filename.endswith('.json'):
+            try:
+                import json
+                data = json.loads(content)
+                form_data = {
+                    'n':     str(data['n']),
+                    'm':     str(data['m']),
+                    'k':     str(data['k']),
+                    'sites': ' '.join(str(s) for s in data['sites']),
+                    'edges': '\n'.join(f"{e['u']} {e['v']} {e['w']}" for e in data['edges']),
+                }
+                errors = {}
+            except Exception:
+                return template(
+                    'tsp',
+                    **_tsp_defaults(),
+                    errors={'global': 'Неверный формат JSON. Ожидается: {"n":..,"m":..,"k":..,"sites":[..],"edges":[{"u":.,"v":.,"w":..}]}'}
+                )
+        else:
+            form_data, errors = parse_txt_file(content)
+
         if errors:
             return template('tsp', **_tsp_defaults(), form=form_data, errors=errors)
 
@@ -173,7 +252,6 @@ def tsp_post():
             'k': form_data['k'],
             'sites': form_data['sites']
         }
-
         for i, line in enumerate(form_data['edges'].splitlines(), 1):
             parts = line.split()
             if len(parts) == 3:
@@ -211,26 +289,73 @@ def tsp_post():
             break
 
     edges_text = '\n'.join(edges_lines)
-    graph, hotel, targets, errors = parse_input(n_raw, edges_text, k, sites)
+
+    # 3. Валидация
+    graph, hotel, targets, errors = parse_input(
+        n_raw,
+        m,
+        edges_text,
+        k,
+        sites
+    )
 
     if errors:
         return template('tsp', **_tsp_defaults(), form=form, errors=errors)
 
-    dists = dijkstra_simple(graph, hotel)
-    unreachable = [t for t in targets if dists.get(t, float('inf')) == float('inf')]
+    unreachable = [
+        t for t in targets
+        if dists.get(t, float('inf')) == float('inf')
+    ]
+   
 
     if unreachable:
-        svg_html = build_svg(graph, best_path=None, full_path=None, hotel=hotel)
-        return template('tsp', **_tsp_defaults(), form=form, svg_html=svg_html, errors={'global': f'Цели {unreachable} недостижимы из отеля {hotel}!'})
+        svg_html = build_svg(graph, best_path=None, full_path=None,
+                             hotel=hotel, unreachable=unreachable)
+    
+        if len(unreachable) == 1:
+            msg = f'Вершина {unreachable[0]} недостижима из отеля {hotel}!'
+        else:
+            msg = f'Вершины {", ".join(unreachable)} недостижимы из отеля {hotel}!'
+    
+        return template('tsp', **_tsp_defaults(), form=form, svg_html=svg_html,
+                        errors={'global': msg})
 
-    best_path, min_dist = solve_tsp(graph, hotel, targets)
+    # 5. Решение TSP
+    best_path, min_dist = solve_tsp(
+        graph,
+        hotel,
+        targets
+    )
+
     if best_path is None:
         return template('tsp', **_tsp_defaults(), form=form, errors={'global': 'Маршрут не найден'})
 
-    full_visual_path = get_full_path(graph, best_path)
-    log_to_file(form_data={'hotel': hotel, 'targets': targets}, result_data={'path': full_visual_path, 'dist': min_dist})
+        return template(
+            'tsp',
+            **_tsp_defaults(),
+            form=form,
+            errors={'global': 'Маршрут не найден'}
+        )
 
-    svg_html = build_svg(graph, best_path=best_path, full_path=full_visual_path, hotel=hotel)
+    # 6. Полный маршрут
+    full_visual_path = get_full_path(
+        graph,
+        best_path
+    )
+    # 7. запись в файл
+    log_to_file(
+    form_data={'hotel': hotel, 'targets': targets},
+    result_data={'path': full_visual_path, 'dist': min_dist}
+)
+    # 8. Визуализация
+
+    svg_html = build_svg(
+        graph,
+        best_path=best_path,
+        full_path=full_visual_path,
+        hotel=hotel,
+        total_dist=min_dist
+    )
     result = {
         'path_str': ' → '.join(best_path),
         'full_path_str': ' → '.join(full_visual_path) if full_visual_path else '',
