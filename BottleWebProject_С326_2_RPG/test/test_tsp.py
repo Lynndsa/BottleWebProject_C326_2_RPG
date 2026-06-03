@@ -7,10 +7,8 @@ import json
 from validators.tsp_validator import parse_input, parse_txt_file
 from tools.tsp_tools import generate_random_graph
 
-
-# ==========================================================
 # Тесты parse_input
-# ==========================================================
+
 class TestParseInput(unittest.TestCase):
 
     def test_valid_input(self):
@@ -64,10 +62,8 @@ class TestParseInput(unittest.TestCase):
                 _, _, _, errors = parse_input(*args)
                 self.assertTrue(errors)
 
-
-# ==========================================================
 # Тесты parse_txt_file
-# ==========================================================
+
 class TestParseTxtFile(unittest.TestCase):
 
     def test_valid_file(self):
@@ -114,9 +110,8 @@ class TestParseTxtFile(unittest.TestCase):
                 self.assertIn('global', errors)
 
 
-# ==========================================================
 # Проверка загрузки файлов
-# ==========================================================
+
 class TestFileUploadValidation(unittest.TestCase):
 
     def test_valid_extensions(self):
@@ -149,9 +144,8 @@ class TestFileUploadValidation(unittest.TestCase):
             json.loads('{broken json}')
 
 
-# ==========================================================
 # Генерация случайного графа
-# ==========================================================
+
 class TestRandomGeneration(unittest.TestCase):
 
     def test_random_graph_structure(self):
@@ -177,7 +171,7 @@ class TestRandomGeneration(unittest.TestCase):
     def test_random_graph_passes_validation(self):
         data = generate_random_graph()
 
-        # Передаем сгенерированные данные строго по новой сигнатуре (5 параметров)
+        # Передаем сгенерированные данные строго по новой сигнатуре 
         graph, hotel, targets, errors = parse_input(
             str(data['n']),
             str(data['m']),

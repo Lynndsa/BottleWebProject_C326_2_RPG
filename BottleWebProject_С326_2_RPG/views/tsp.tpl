@@ -24,7 +24,7 @@
   <p class="subtitle">Оптимальный маршрут туриста — задача коммивояжёра (TSP)</p>
 
   <!-- ====== Теория ====== -->
-  <div class="card-panel theory-card-wrapper" style="margin-bottom: 25px;">
+  <div class="card-panel theory-card-wrapper" >
 <details class="theory-accordion-clean">
       <summary>📖 Справка: Теория и пошаговый разбор алгоритма TSP</summary>
       <div class="theory-content-white">
@@ -37,7 +37,7 @@
         </ol>
         <p>Временная сложность перебора составляет O(M!). При ограничении M ≤ 8 максимальное число комбинаций составляет 8! = 40 320.</p>
 
-        <hr style="margin: 20px 0;">
+        <hr >
 
         <div class="row align-items-center mb-4">
           <div class="col-md-6">
@@ -67,7 +67,7 @@
         <div class="row align-items-center">
           <div class="col-md-6">
             <h4>Шаг 2: Все возможные маршруты</h4>
-            <ul style="margin-bottom:15px;">
+            <ul>
               <li><code>A→B→E→F→A</code> = 4+3+5+10 = <strong>22</strong> ✓</li>
               <li><code>A→B→F→E→A</code> = 4+6+5+7 = <strong>22</strong> ✓</li>
               <li><code>A→E→B→F→A</code> = 7+3+6+10 = 26</li>
@@ -78,9 +78,9 @@
             <p><strong>Оптимальный маршрут:</strong> A→B→E→F→A<br><strong>Минимальное время:</strong> 22 ед.</p>
           </div>
           <div class="col-md-6">
-            <div class="theory-img-wrapper" style="margin:0; text-align:center;">
+            <div class="theory-img-wrapper" >
               <img src="/static/content/image/excursion_theory_path.svg" alt="Оптимальный маршрут" class="theory-img" style="max-height:220px;">
-              <p class="theory-caption" style="margin-bottom:0;"><em>Рисунок 2. Оптимальный маршрут A→B→E→F→A.</em></p>
+              <p class="theory-caption"><em>Рисунок 2. Оптимальный маршрут A→B→E→F→A.</em></p>
             </div>
           </div>
         </div>
@@ -96,14 +96,14 @@
            onchange="document.getElementById('tsp-form').submit()">
 
     <!-- Две карточки рядом -->
-   <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:start; margin-bottom:20px;">
+   <div class="two-card">
 
       <!-- Левая карточка: параметры -->
       <div style="flex:1 1 340px; min-width:340px;">
       <div class="card-panel" style="margin-bottom:0;">
           <h2 style="margin-top:0;">Параметры графа</h2>
 
-          <div class="preset-buttons" style="display:flex; gap:10px; margin-bottom:18px;">
+          <div class="preset-buttons" class="random">
             <button type="submit" formaction="/tsp/random"
                     class="btn btn-light btn-sm btn-preset" style="flex:1;">
               🎲 Случайный
@@ -164,7 +164,7 @@
       </div>
 
       <!-- Правая карточка: таблица рёбер -->
-      <div class="card-panel edges-table-wrapper" style="flex:2 1 450px; min-width:450px;">
+      <div class="card-panel edges-table-wrapper" class="naming">
         <h2>Список рёбер графа</h2>
 
         % if _errors.get('edges'):
@@ -173,7 +173,7 @@
           </div>
         % end
 
-        <div class="table-responsive" id="matrix-wrapper" style="max-height:520px; overflow-y:auto;">
+        <div class="table-responsive" id="matrix-wrapper" class="table">
           % if val_n and val_n.isdigit() and int(val_n) > 0 and int(val_n) < 20:
             % edge_count = len([key for key in _form.keys() if key.startswith('u_')])
             % if edge_count == 0:
@@ -220,7 +220,7 @@
           % end
         </div>
 
-        <div style="display:flex; gap:10px; margin-top:15px; align-items:center;">
+        <div class="count-vershin">
           <button type="button" id="btn-add-edge" class="btn btn-light btn-sm btn-preset">
             ➕ Добавить ребро
           </button>
@@ -235,20 +235,19 @@
 
   <script src="/static/scripts/tsp_edges.js"></script>
 
-  <!-- ====== Визуализация — на всю ширину ====== -->
- <div style="margin-top:20px;" id="result-anchor">
+  <!--Визуализация  -->
+ <div class="visual-ostup" id="result-anchor">
   <div class="card-panel">
-    <h2 style="margin-top:0;">Визуализация структуры графа и путей</h2>
-      <div class="visual-container" style="min-height:400px;">
+    <h2 class="visual-text">Визуализация структуры графа и путей</h2>
+      <div class="visual-container" >
 % if _svg:
-  <div id="tsp-wrap" class="graph-svg-output" 
-       style="overflow:hidden; position:relative; width:100%; height:500px; cursor:grab;">
+  <div id="tsp-wrap" class="graph-svg-output" >
     {{!_svg}}
-    <div style="position:absolute; top:10px; right:10px; display:flex; gap:5px;">
+    <div class="visual-navigation">
       <button id="tsp-btn-in"  class="btn btn-light btn-sm">+</button>
       <button id="tsp-btn-out" class="btn btn-light btn-sm">−</button>
       <button id="tsp-btn-rst" class="btn btn-light btn-sm">⟳</button>
-      <span id="tsp-lbl" style="font-size:12px; line-height:28px;">100%</span>
+      <span id="tsp-lbl" class="style">100%</span>
     </div>
   </div>
         % elif _result:
@@ -256,34 +255,33 @@
             <h4>Результат расчёта:</h4>
             <p class="result-p">
               <strong>Оптимальный путь:</strong>
-              <span class="text-highlight-blue" style="font-size:1.25rem;">
+              <span class="text-highlight-blue" class="out">
                 {{_result.get('path_str', '')}}
               </span>
             </p>
             <p class="result-p">
               <strong>Минимальное время:</strong>
-              <span class="text-highlight-green" style="font-size:1.25rem;">
+              <span class="text-highlight-green" class="out">
                 {{_result.get('min_weight', '')}}
               </span> ед.
             </p>
           </div>
         % else:
-          <p class="placeholder-text" style="padding:60px 0;">
+          <p class="placeholder-text" class="error">
             Заполните поля параметров и рёбер графа для генерации визуальной схемы
           </p>
         % end
       </div>
     </div>
 % _result_id = get('result_id', None)
-% if _result and _result_id:
-  <div style="margin-top:15px; text-align:right;">
-    <a href="/tsp/download/{{_result_id}}">
-      <button type="button" class="btn-submit-tsp">
-        💾 Скачать результат (ZIP)
-      </button>
-    </a>
+    % if _result and _result_id:
+    <div class="otsup">
+      <a href="/tsp/download/{{_result_id}}">
+        <button type="button" class="btn-submit-tsp">
+          💾 Скачать результат (ZIP)
+        </button>
+      </a>
+    </div>
+    % end
   </div>
-% end
-  </div>
-    </div>  
 </div>
