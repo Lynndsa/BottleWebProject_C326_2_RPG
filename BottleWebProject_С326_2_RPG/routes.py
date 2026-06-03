@@ -22,7 +22,6 @@ from validators.bfs_validator import validate_bfs_params
 from visual.bfs_visual import create_graph_from_edges, generate_graph_svg, generate_infection_chart
 from tools.bfs_tools import parse_bfs_config_file, generate_random_bfs_network
 
-﻿# -*- coding: utf-8 -*-
 import pickle
 import os
 import json
@@ -301,7 +300,7 @@ def tsp_post():
 
     if errors:
         return template('tsp', **_tsp_defaults(), form=form, errors=errors)
-
+    dists = dijkstra_simple(graph, hotel)
     unreachable = [
         t for t in targets
         if dists.get(t, float('inf')) == float('inf')
