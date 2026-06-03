@@ -23,7 +23,7 @@ def dijkstra_with_path(graph, start, end, used_edges=None):
             
         # Обходим всех соседей текущей вершины u
         for v, w in graph[u].items():
-            # Если ребро уже использовалось ранее, добавляем искусственный штраф в 10 000
+            # Если ребро уже использовалось ранее, то штрафуем
             penalty = 1000 if used_edges and ((u, v) in used_edges or (v, u) in used_edges) else 0
             new_dist = d + w + penalty
             
@@ -76,7 +76,6 @@ def get_full_path(graph, best_path):
 
     return full_path
 
-    #Классический алгоритм Дейкстры.
 def dijkstra_simple(graph, start):
     #Находит кратчайшие расстояния от стартовой вершины до абсолютно всех остальных вершин графа.
     distances = {vertex: float('inf') for vertex in graph}
@@ -85,18 +84,18 @@ def dijkstra_simple(graph, start):
     
     while pq:
         d, u = heapq.heappop(pq)
-        
+        # если мы находили уже маршрут короче
         if d > distances[u]:
             continue
             
         for v, w in graph[u].items():
+            # если новое расстояние до соседа меньше до обновляемся
             if distances[u] + w < distances[v]:
                 distances[v] = distances[u] + w
                 heapq.heappush(pq, (distances[v], v))
                 
     return distances
 
-    # Методом полного перебора 
 def solve_tsp(graph, start_node, targets):
     if not targets:
         return None, None
@@ -128,7 +127,7 @@ def solve_tsp(graph, start_node, targets):
                 break
             current_dist += d
 
-        # Если путь физически возможен и он короче, чем лучший найденный ранее — запоминаем его
+        # Если путь возможен и он короче то его запоминаем
         if is_possible and current_dist < min_total_dist:
             min_total_dist = current_dist
             best_key_path  = path

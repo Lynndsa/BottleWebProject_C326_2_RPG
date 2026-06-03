@@ -55,8 +55,9 @@
                 if w < 1:
                     errors['edges'] = f'Строка {line_num}: вес ребра должен быть больше 0'
                     break
-                graph[u][v] = w
-                graph[v][u] = w
+                if n_val and u in graph and v in graph:
+                    graph[u][v] = w
+                    graph[v][u] = w
             except ValueError:
                 errors['edges'] = f'Строка {line_num}: нужны числа'
                 break

@@ -1,11 +1,11 @@
 import io
 import matplotlib
-# Переключение Matplotlib в фоновый режим 'Agg' (без графического интерфейса), 
+# Переключение Matplotlib в фоновый режим 'Agg' 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import networkx as nx
 
-def _build_fig(graph, best_path=None, full_path=None, hotel=None, unreachable=None):
+def _build_fig(graph, best_path=None, full_path=None, hotel=None, unreachable=None, total_dist=None):
 
     # Создаём пустой объект неориентированного графа в NetworkX
     G = nx.Graph()
@@ -21,7 +21,7 @@ def _build_fig(graph, best_path=None, full_path=None, hotel=None, unreachable=No
     if len(G.nodes) == 0:
         return None
         
-    # Задаём шаблон генерации координат: circular_layout расставляет все вершины по кругу
+    # Задаём шаблон генерации координат и расставляет все вершины по кругу
     pos = nx.circular_layout(G)
     
     # Создаём холст 
@@ -46,10 +46,10 @@ def _build_fig(graph, best_path=None, full_path=None, hotel=None, unreachable=No
             # если оптимальный
             route_edges.append((u, v))
         else:
-            #если не оптимальный
+            # если не оптимальный
             normal_edges.append((u, v))
             
-    # Рисуем обычные рёбра ( нейтрального серого цвета)
+    # Рисуем обычные рёбра (нейтрального серого цвета)
     nx.draw_networkx_edges(G, pos, ax=ax,
                            edgelist=normal_edges,
                            edge_color='#cbd5e1', width=1.2)
@@ -61,7 +61,6 @@ def _build_fig(graph, best_path=None, full_path=None, hotel=None, unreachable=No
                                edge_color='#0080cc', width=3.0)
                                
     # Подготавливаем множества вершин для удобной проверки их статуса при раскраске
-    # если ничего нет, то вернем пустоем множество
     full_path_nodes = set(full_path) if full_path else set()
     key_nodes       = set(best_path[:-1]) if best_path else set()
     unreachable_set = set(unreachable) if unreachable else set()
@@ -102,12 +101,17 @@ def _build_fig(graph, best_path=None, full_path=None, hotel=None, unreachable=No
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels,
                                  ax=ax, font_size=8, font_color='#475569')
                                  
-    # Если путь существует, генерируем для графика заголовок с цепочкой обхода
+    # Если путь существует, генерируем для графика заголовок с цепочкой обхода и суммой
     if draw_path:
         path_str = ' → '.join(str(n) for n in draw_path)
-        if len(path_str) > 60:
-            path_str = path_str[:57] + '...'
-        ax.set_title('Полный путь: ' + path_str, fontsize=10, color='#0f172a', pad=15)
+        if len(path_str) > 50:
+            path_str = path_str[:47] + '...'
+            
+        title_text = f'Полный путь: {path_str}'
+        if total_dist is not None:
+            title_text += f'  |  Длина маршрута: {total_dist} ед.'
+            
+        ax.set_title(title_text, fontsize=10, color='#0f172a', pad=15, fontweight='bold')
         
     # Прячем оси координат 
     ax.axis('off')
@@ -115,10 +119,10 @@ def _build_fig(graph, best_path=None, full_path=None, hotel=None, unreachable=No
     return fig
 
 # Принимает данные графа, генерирует картинку и конвертирует её в чистую SVG-строку
-def build_svg(graph, best_path=None, full_path=None, hotel=None, unreachable=None):
+def build_svg(graph, best_path=None, full_path=None, hotel=None, unreachable=None, total_dist=None):
 
-    # Строим фигуру 
-    fig = _build_fig(graph, best_path, full_path, hotel, unreachable)
+    # Строим фигуру и передаем параметр total_dist
+    fig = _build_fig(graph, best_path, full_path, hotel, unreachable, total_dist)
     if fig is None:
         return ''
         
