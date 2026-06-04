@@ -44,6 +44,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="app.py" />
+    <Compile Include="test\bfs_test_selenium.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="test\test_bfs.py">
       <SubType>Code</SubType>
     </Compile>
