@@ -13,7 +13,7 @@
     <WorkingDirectory>.</WorkingDirectory>
     <LaunchProvider>Web launcher</LaunchProvider>
     <OutputPath>.</OutputPath>
-    <WebBrowserUrl>http://localhost</WebBrowserUrl>
+    <WebBrowserUrl>http://localhost:5555/</WebBrowserUrl>
     <PythonDebugWebServerCommandArguments>--debug $(CommandLineArguments)</PythonDebugWebServerCommandArguments>
     <SuppressCollectPythonCloudServiceFiles>true</SuppressCollectPythonCloudServiceFiles>
     <Name>BottleWebProject_С326_2_RPG</Name>
@@ -51,6 +51,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\test_tsp.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\tsp_test_selenium.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\__init__.py">
@@ -137,6 +140,9 @@
     <Content Include="static\scripts\respond.min.js" />
     <Content Include="static\scripts\tsp_edges.js" />
     <Content Include="static\scripts\_references.js" />
+    <Content Include="test\data.txt">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="views\about.tpl" />
     <Content Include="views\bfs.tpl">
       <SubType>Code</SubType>

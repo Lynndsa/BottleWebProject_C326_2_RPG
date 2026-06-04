@@ -152,6 +152,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    margin-bottom: 25px;
 }
 
     .card-panel h2 {
@@ -278,7 +279,24 @@
     .btn-submit-tsp:hover {
         background: #006fa3;
     }
-
+.out {
+    font-size: 1.25rem;
+}
+.error {
+    padding:60px 0;
+}
+.random {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+.two-card {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: start;
+    margin-bottom: 20px;
+}
 /* Таблица загруженных ребер графа */
 .edges-file-table {
     width: 100%;
@@ -351,18 +369,58 @@
 .visual-container {
     border: 1px solid #f1f5f9;
     border-radius: 12px;
-    min-height: 250px;
+    min-height: 500px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #f8fafc;
+    min-height: 800px;
 }
-
+.visual-text {
+    margin-top: 0;
+}
+.ostup {
+    margin-top:15px;
+    text-align:right;
+}
+.visual-ostup {
+    margin-top: 10px;
+}
+.visual-navigation {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+}
+.count-vershin {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    align-items: center;
+}
+.table {
+    max-height: 520px;
+    overflow-y: auto;
+}
+.naming {
+    flex: 2 1 450px;
+    min-width: 450px
+}
 /* Область отображения сгенерированного SVG-графа */
 .graph-svg-output {
     width: 100%;
     padding: 10px;
     text-align: center;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    height: 500px;
+    cursor: grab;
+}
+.style {
+    font-size: 12px;
+    line-height: 28px;
 }
 
 /* Блок текстового вывода найденного маршрута обхода */
@@ -485,3 +543,13 @@
         color: #ef4444;
         background: #fff5f5;
     }
+.maxwidth {
+    width: 100%;
+}
+.centermargin {
+    margin: 0;
+    text-align: center
+}
+.otsup1 {
+    margin: 20px 0;
+}

@@ -346,6 +346,25 @@ def tsp_post():
     form_data={'hotel': hotel, 'targets': targets},
     result_data={'path': full_visual_path, 'dist': min_dist}
 )
+
+    os.makedirs('tmp_results', exist_ok=True)
+    existing = [f for f in os.listdir('tmp_results') if f.endswith('.pkl')]
+    result_id = str(len(existing) + 1)
+
+    with open(f'tmp_results/{result_id}.pkl', 'wb') as f:
+        pickle.dump({
+            'graph':      graph,
+            'best_path':  best_path,
+            'full_path':  full_visual_path,
+            'hotel':      hotel,
+            'unreachable': None,
+            'log': {
+                'hotel':   hotel,
+                'targets': targets,
+                'path':    full_visual_path,
+                'dist':    min_dist
+            }
+        }, f)
     # 8. Визуализация
 
     svg_html = build_svg(
@@ -360,7 +379,17 @@ def tsp_post():
         'full_path_str': ' → '.join(full_visual_path) if full_visual_path else '',
         'min_weight': min_dist,
     }
-    return template('tsp', **_tsp_defaults(), form=form, errors={}, result=result, svg_html=svg_html)
+
+    
+    return template(
+        'tsp',
+        **_tsp_defaults(),
+        form=form,
+        errors={},
+        result=result,
+        svg_html=svg_html,
+        result_id=result_id
+    )
 
 
 @route('/static/<filepath:path>')

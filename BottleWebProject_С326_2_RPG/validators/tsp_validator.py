@@ -4,14 +4,14 @@
     # 1. Валидация N
     try:
         n_val = int(n)
-        if not (1 <= n_val <= 20):
-            errors['n'] = 'Число вершин от 1 до 20'
+        if not (1 <= n_val <= 50):
+            errors['n'] = 'Число вершин от 1 до 50'
             n_val = None
     except (TypeError, ValueError):
         errors['n'] = 'Введите целое число'
         n_val = None
 
-    # Инициализация графа (все ключи — СТРОКИ)
+    # Инициализация графа 
     graph = {}
     if n_val:
         for i in range(1, n_val + 1):
