@@ -1967,3 +1967,8 @@ tr.row-invalid td {
     cursor: not-allowed !important;
     pointer-events: none;
 }
+
+.accordion-content h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}

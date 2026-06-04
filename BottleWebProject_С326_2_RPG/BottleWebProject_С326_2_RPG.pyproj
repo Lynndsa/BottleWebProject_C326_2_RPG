@@ -46,6 +46,7 @@
     <Compile Include="test_dfs.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test_selenium_dfs.py" />
     <Compile Include="tools\tsp_tools.py">
       <SubType>Code</SubType>
     </Compile>
@@ -126,6 +127,8 @@
     <Content Include="static\scripts\respond.min.js" />
     <Content Include="static\scripts\tsp_edges.js" />
     <Content Include="static\scripts\_references.js" />
+    <Content Include="test_data_invalid.txt" />
+    <Content Include="test_data_large.txt" />
     <Content Include="views\about.tpl" />
     <Content Include="views\bfs.tpl">
       <SubType>Code</SubType>
