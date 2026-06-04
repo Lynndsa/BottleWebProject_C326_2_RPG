@@ -137,7 +137,7 @@ function validateMatrixRows(nInput) {
 // Автоматическая генерация N + 3 строк
 function generateRowsFromN(nInput) {
     const n = parseInt(nInput.value);
-    if (isNaN(n) || n < 0 || n >= 20) return;
+    if (isNaN(n) || n < 0 || n >= 50) return;
 
     const targetRows = n + 3;
     let tbody = document.querySelector('#matrix-table tbody');

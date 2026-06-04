@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 def generate_random_graph(n=None, m=None):    
     #  выбираем случайно от 5 до 20
     if n is None:
-        n = random.randint(5, 20)
+        n = random.randint(5, 50)
     #  выбираем от 2 до 6 (или n-1)
     if m is None:
         m = random.randint(2, min(6, n - 1))
@@ -71,9 +71,6 @@ def generate_random_graph(n=None, m=None):
                 edge_list.append((u, v, w))
         attempts += 1
 
-    # Повторный срез на случай, если структура пересобиралась (страховка консистентности)
-    candidates = [v for v in range(1, n + 1) if v != k]
-    sites = random.sample(candidates, min(m, len(candidates)))
 
     # Возвращаем словарь в текстовом формате, готовом для вставки в поля веб-формы
     return {

@@ -543,3 +543,13 @@
         color: #ef4444;
         background: #fff5f5;
     }
+.maxwidth {
+    width: 100%;
+}
+.centermargin {
+    margin: 0;
+    text-align: center
+}
+.otsup1 {
+    margin: 20px 0;
+}
