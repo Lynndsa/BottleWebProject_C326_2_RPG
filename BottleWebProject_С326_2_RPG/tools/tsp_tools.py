@@ -3,7 +3,6 @@ import datetime
 import json
 import zipfile
 import io
-from flask import send_file
 from visual.tsp_visual import _build_fig
 import matplotlib.pyplot as plt
 
