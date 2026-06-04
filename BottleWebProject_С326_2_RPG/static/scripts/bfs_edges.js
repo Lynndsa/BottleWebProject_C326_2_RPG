@@ -82,7 +82,7 @@ function updateMInputValue(count) {
 //Динамическая генерация строк
 function adjustTableRows(targetValue) {
     const count = parseInt(targetValue, 10);
-    if (isNaN(count) || count < 0) return;
+    if (isNaN(count) || count < 0 || count >80) return;
 
     const tbody = document.querySelector('#matrix-table tbody');
     let currentRows = tbody.querySelectorAll('tr');

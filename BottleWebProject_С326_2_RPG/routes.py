@@ -373,7 +373,7 @@ def server_static(filepath):
 def bfs_home():
     default_form = {
         'n': '10',
-        'm': '2',
+        'm': '12',
         'p': '0.5',
         'iter': '100',
         'v_inf': '1'
@@ -392,11 +392,11 @@ def bfs_home():
 def bfs_random():
     # Собираем то, что пользователь успел ввести на форме (если ввёл)
     n_raw = request.forms.get('n', '10')
-    m_raw = request.forms.get('m', '2')
+    m_raw = request.forms.get('m', '12')
     p_raw = request.forms.get('p', '0.3')
     iter_raw = request.forms.get('iter', '50')
 
-    # Вызываем твою функцию генерации
+    # Вызываем функцию генерации
     form_data = generate_random_bfs_network(n_raw, m_raw, p_raw, iter_raw)
 
     # Отдаем промежуточный результат в таблицу рёбер
@@ -435,32 +435,49 @@ def bfs_simulate():
     start_nodes = validated_data.get('v_inf', [1])
     v_inf_str = form_data.get('v_inf', '1')
 
-    # Сбор рёбер из таблицы формы
+  # Сбор рёбер из таблицы формы с жесткой валидацией на пустые поля
     edges = []
     edge_idx = 1
-    while True:
-        u_val = form_data.get(f'u_{edge_idx}', '').strip()
-        v_val = form_data.get(f'v_{edge_idx}', '').strip()
-        if not u_val and not v_val:
-            has_more = False
-            for j in range(edge_idx + 1, edge_idx + 5):
-                if form_data.get(f'u_{j}', '').strip() or form_data.get(f'v_{j}', '').strip():
-                    has_more = True
-                    break
-            if not has_more: break
-            edge_idx += 1
-            continue
-        
-        if u_val and v_val:
-            try:
-                u, v = int(u_val), int(v_val)
-                if 1 <= u <= n and 1 <= v <= n and u != v:
-                    if (u, v) not in edges and (v, u) not in edges: edges.append((u, v))
-            except ValueError: pass
-        edge_idx += 1
-        if edge_idx > 200: break
+    has_empty_fields = False
 
-    if not edges and not errors.get('n') and not errors.get('m'):
+    while True:
+        # Важно: используем дефолтный None, чтобы поймать реальный конец переданных полей
+        u_raw = form_data.get(f'u_{edge_idx}', None)
+        v_raw = form_data.get(f'v_{edge_idx}', None)
+        
+        # Если этих полей вообще нет в POST-запросе, значит таблица точно кончилась
+        if u_raw is None and v_raw is None:
+            break
+
+        u_val = u_raw.strip()
+        v_val = v_raw.strip()
+
+        # Если хотя бы одно поле пустое, либо оба поля пустые в существующей строке формы
+        if not u_val or not v_val:
+            has_empty_fields = True
+            break
+
+        # Если оба поля заполнены, валидируем числа
+        try:
+            u, v = int(u_val), int(v_val)
+            if 1 <= u <= n and 1 <= v <= n and u != v:
+                if (u, v) not in edges and (v, u) not in edges:
+                    edges.append((u, v))
+            else:
+                errors['edges'] = f'Номера узлов в строке {edge_idx} должны быть от 1 до {n} и не равны друг другу.'
+                break
+        except ValueError:
+            errors['edges'] = f'В строке {edge_idx} введены некорректные символы. Ожидаются числа.'
+            break
+
+        edge_idx += 1
+        if edge_idx > 200: 
+            break
+
+    # Выставляем общие ошибки для таблицы рёбер
+    if has_empty_fields:
+        errors['edges'] = 'Таблица рёбер содержит незаполненные поля! Пожалуйста, закройте/удалите лишние строки или заполните их.'
+    elif not edges and not errors.get('n') and not errors.get('m'):
         errors['edges'] = 'Добавьте хотя бы одно ребро'
 
     # Если есть ошибки (от валидатора параметров или по рёбрам) — рендерим форму обратно
@@ -477,7 +494,7 @@ def bfs_simulate():
     simulator = ProbabilisticBFS(graph, p=p)
     sim_results = simulator.monte_carlo_simulation(start_nodes, iterations)
 
-    chart_b64 = generate_infection_chart(sim_results['timeline'])
+    chart_b64 = generate_infection_chart(sim_results['timeline'], n_nodes = n)
     svg_html = generate_graph_svg(graph, start_nodes, sim_results['infection_frequencies'])
 
     result = {

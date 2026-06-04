@@ -4,7 +4,7 @@ import random
 def generate_random_bfs_network(n_str, m_str, p_str, iter_str):
     """Генерирует случайную структуру сети строго с M рёбрами"""
     n_str = n_str.strip() if n_str else '10'
-    m_str = m_str.strip() if m_str else '2'  # По умолчанию 2, как на твоем скриншоте
+    m_str = m_str.strip() if m_str else '12'  
     p_str = p_str.strip() if p_str else '0.3'
     iter_str = iter_str.strip() if iter_str else '50'
 

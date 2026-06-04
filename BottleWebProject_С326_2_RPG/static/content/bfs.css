@@ -962,3 +962,7 @@
         max-width: 100%;
     }
 }
+input[name="p"]:invalid {
+    border-color: #dc3545 !important; /* Тот самый красный цвет, который у тебя на Очагах */
+    background-color: #fff8f8; /* Мягкий розовый фон (по желанию) */
+}

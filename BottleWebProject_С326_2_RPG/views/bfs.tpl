@@ -148,7 +148,7 @@
             </div>
             <div class="flex-input-m">
               <label class="form-label-custom">Очаги (M)</label>
-              <input id="m_input" type="number" name="m" class="form-control-custom {{cls_m}}" value="{{val_m}}" placeholder="2" min="1" max="80">
+              <input id="m_input" type="number" name="m" class="form-control-custom {{cls_m}}" value="{{val_m}}" placeholder="12" min="1" max="80">
             </div>
             <div class="flex-input-p">
               <label class="form-label-custom">Вероятность (p)</label>
@@ -231,81 +231,84 @@
   <script src="/static/scripts/bfs_edges.js"></script>
 
  <!-- Блок аналитики и результатов -->
-  % if _result or _svg:
-  <div class="results-wrapper-block">
-    <div class="card-panel analytics-master-panel">
-      <div style="text-align: right; margin: 20px 0;">
-        <a href="/bfs/download-results" class="btn-preset" style="display: inline-block; background-color: #28a745; color: white; padding: 10px 20px; border-radius: 4px; font-weight: bold; text-decoration: none; text-align: center;">
-          📦 Скачать архив результатов (.zip)
-        </a>
-      </div>
-      <h2 class="analytics-main-title">
-        📊 Аналитика результатов моделирования
-      </h2>
-      
-      % if _result:
-      <div class="analytics-text-container">
-        
-        <h4 class="analytics-section-title">
-          Статистические данные метода Монте-Карло:
-        </h4>
-        
-        <div class="analytics-metric-row">
-          <strong>Теоретическая достижимость инфекции (X):</strong> 
-          <span class="analytics-metric-value">{{_result.get('connectivity_max', 0)}}</span> из {{val_n if val_n else '?'}} узлов популяции.
-        </div>
-        
-        <div class="analytics-metric-row">
-          <strong>Средняя длительность вспышки:</strong> 
-          <span class="analytics-metric-value">{{_result.get('v_mean', '')}}</span> шагов времени (уровней BFS).
-        </div>
-        
-        <div class="analytics-highlight-badge-row">
-          <strong>Средний итоговый уровень заражения:</strong> 
-          <span class="analytics-badge-accent">{{_result.get('p_final', '')}}%</span> населения 
-          <span class="analytics-badge-subtext">(в среднем ≈ {{_result.get('avg_infected_count', '?')}} узлов из {{val_n if val_n else '?'}})</span>
-        </div>
-        
-        <hr class="analytics-dashed-line">
-        
-        <p class="analytics-subheading">Дополнительные метрики распределения (по результатам {{_result.get('iterations', 100)}} симуляций):</p>
-        <ul class="analytics-extra-metrics-list">
-            <li>Максимальный зафиксированный охват: <strong class="dark-accent-text">{{_result.get('max_infected', 0)}}</strong> узлов ({{"%.1f" % ((_result.get('max_infected', 0) / int(val_n) * 100) if val_n else 0)}}%)</li>
-            <li>Минимальный зафиксированный охват: <strong class="dark-accent-text">{{_result.get('min_infected', 0)}}</strong> узлов</li>
-            <li>Наиболее вероятный исходовый паттерн: <code class="analytics-code-pattern">{{_result.get('most_common_infected', [])}}</code> (встретился в {{_result.get('most_common_percent', 0)}}% всех запусков)</li>
-        </ul>
-        
-        <div class="analytics-info-disclaimer">
-            <strong>ℹ️ Примечание к расчётам:</strong> Финальный показатель уровня заражения ({{_result.get('p_final', '')}}%) является результатом 
-            математического усреднения по всем итерациям. Исход конкретного единичного случая может иметь отклонения в силу стохастической природы алгоритма.
-        </div>
-      </div>
-      % end
+ % if _result or _svg:
+ <div class="results-wrapper-block">
+   <div class="card-panel analytics-master-panel">
+     
+     <div style="text-align: right; margin-bottom: 20px;">
+       <a href="/bfs/download-results" class="btn-preset" style="display: inline-block; background-color: #28a745; color: white; padding: 10px 20px; border-radius: 4px; font-weight: bold; text-decoration: none; text-align: center;">
+         📦 Скачать архив результатов (.zip)
+       </a>
+     </div>
 
-      <!-- Нижний блок для графа -->
-      % if _svg:
-      <div class="visual-container-full">
-        <div class="graph-svg-output-full">
-            {{!_svg}}
-        </div>
-      </div>
-      % end
+     <h2 class="analytics-main-title">
+       📊 Аналитика результатов моделирования
+     </h2>
+     
+     % if _result:
+       <div class="analytics-main-row" style="display: flex; flex-wrap: wrap; gap: 25px; margin-bottom: 30px; align-items: flex-start;">
+         
+         <div class="analytics-text-column" style="flex: 1 1 500px; max-width: 100%;">
+           <div class="analytics-text-container" style="padding-right: 10px;">
+             <h4 class="analytics-section-title" style="margin-top: 0;">
+               Статистические данные метода Монте-Карло:
+             </h4>
+             
+             <div class="analytics-metric-row">
+               <strong>Теоретическая достижимость инфекции (X):</strong> 
+               <span class="analytics-metric-value">{{_result.get('connectivity_max', 0)}}</span> из {{val_n if val_n else '?'}} узлов популяции.
+             </div>
+             
+             <div class="analytics-metric-row">
+               <strong>Средняя длительность вспышки:</strong> 
+               <span class="analytics-metric-value">{{_result.get('v_mean', '')}}</span> шагов времени (уровней BFS).
+             </div>
+             
+             <div class="analytics-highlight-badge-row">
+               <strong>Средний итоговый уровень заражения:</strong> 
+               <span class="analytics-badge-accent">{{_result.get('p_final', '')}}%</span> населения 
+               <span class="analytics-badge-subtext">(в среднем ≈ {{_result.get('avg_infected_count', '?')}} узлов из {{val_n if val_n else '?'}})</span>
+             </div>
+             
+             <hr class="analytics-dashed-line">
+             
+             <p class="analytics-subheading">Дополнительные метрики распределения (по результатам {{_result.get('iterations', 100)}} симуляций):</p>
+             <ul class="analytics-extra-metrics-list">
+                 <li>Максимальный зафиксированный охват: <strong class="dark-accent-text">{{_result.get('max_infected', 0)}}</strong> узлов ({{"%.1f" % ((_result.get('max_infected', 0) / int(val_n) * 100) if val_n else 0)}}%)</li>
+                 <li>Минимальный зафиксированный охват: <strong class="dark-accent-text">{{_result.get('min_infected', 0)}}</strong> узлов</li>
+                 <li>Наиболее вероятный исходовый паттерн: <code class="analytics-code-pattern">{{_result.get('most_common_infected', [])}}</code> (встретился в {{_result.get('most_common_percent', 0)}}% всех запусков)</li>
+             </ul>
+             
+             <div class="analytics-info-disclaimer" style="margin-bottom: 0;">
+                 <strong>ℹ️ Примечание к расчётам:</strong> Финальный показатель уровня заражения ({{_result.get('p_final', '')}}%) является результатом 
+                 математического усреднения по всем итерациям. Исход конкретного единичного случая может иметь отклонения в силу стохастической природы алгоритма.
+             </div>
+           </div>
+         </div>
 
-    </div>
-  </div>
-  % end
+         <div class="analytics-chart-column" style="flex: 1 1 400px; display: flex; flex-direction: column;">
+           % if _result.get('chart_base64'):
+             <div class="chart-container-side" style="background: #f8f9fa; border: 1px solid #e3e6f0; border-radius: 6px; padding: 15px; height: 100%;">
+               <div class="chart-image-wrapper" style="text-align: center;">
+                 <img src="data:image/png;base64,{{_result['chart_base64']}}" alt="Кривая динамики заражения" class="chart-img-fluid" style="max-width: 100%; height: auto; border-radius: 4px;">
+               </div>
+             </div>
+           % end
+         </div>
 
-      % if _result and _result.get('chart_base64'):
-      <div class="chart-container-full">
-          <h5 class="graphics-block-title">
-            📈 График динамики заражения (усредненный по волнам BFS)
-          </h5>
-          <div class="chart-image-wrapper">
-              <img src="data:image/png;base64,{{_result['chart_base64']}}" alt="Кривая динамики заражения" class="chart-img-fluid">
-          </div>
-      </div>
-      
-      % end
-      
+       </div>
+     % end
 
+     % if _svg:
+       <hr class="analytics-dashed-line" style="margin: 25px 0;">
+       <div class="visual-container-full" style="width: 100%;">
+         <div class="graph-svg-output-full" style="width: 100%; overflow: auto; text-align: center;">
+             {{!_svg}}
+         </div>
+       </div>
+     % end
+
+   </div>
+ </div>
+ % end
 </div>
