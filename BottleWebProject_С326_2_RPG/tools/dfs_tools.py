@@ -1,11 +1,10 @@
-
 import random
 import string
 import time
 
 
 def _random_wallet(length: int = 6) -> str:
-    """Генерирует случайный адрес кошелька: буквы + цифры, заглавные."""
+    """Генерирует случайный адрес кошелька: заглавные буквы + цифры."""
     chars = string.ascii_uppercase + string.digits
     return ''.join(random.choices(chars, k=length))
 
@@ -22,33 +21,27 @@ def generate_transactions(
     Генерирует список случайных транзакций в виде DAG (ориентированный граф без циклов).
 
     Возвращает список словарей:
-        {
-            'sender':    str,
-            'receiver':  str,
-            'amount':    float,
-            'timestamp': int,
-            'valid':     True,
-        }
+        {'sender': str, 'receiver': str, 'amount': float, 'timestamp': int, 'valid': True}
 
     Параметры
     ---------
-    tx_count     : желаемое кол-во транзакций (может быть меньше при малом wallet_count)
-    wallet_count : кол-во уникальных кошельков-вершин (2..50)
-    base_ts      : начальная временна́я метка (по умолчанию — текущее время)
+    tx_count     : желаемое число транзакций (может быть меньше при малом wallet_count)
+    wallet_count : число уникальных кошельков-вершин (2..50)
+    base_ts      : начальная временна́я метка (по умолчанию — текущее время минус случайный сдвиг)
     min_amount   : минимальная сумма перевода
     max_amount   : максимальная сумма перевода
-    seed         : seed для воспроизводимости
+    seed         : seed для воспроизводимости результатов
     """
     if seed is not None:
         random.seed(seed)
 
     wallet_count = max(2, min(wallet_count, 50))
-    tx_count = max(1, min(tx_count, 200))
+    tx_count     = max(1, min(tx_count, 200))
 
     if base_ts is None:
         base_ts = int(time.time()) - random.randint(3600, 86400)
 
-    # Генерируем уникальные адреса
+    # Генерируем уникальные адреса кошельков
     wallets: list[str] = []
     seen: set[str] = set()
     attempts = 0
@@ -59,17 +52,16 @@ def generate_transactions(
             wallets.append(w)
         attempts += 1
 
-    # Строим случайный DAG: разрешаем переход только от i → j, где i < j (по индексу),
-    # чтобы гарантировать отсутствие циклов.
+    # DAG без циклов: разрешаем только рёбра i → j, где i < j по индексу кошелька
     all_edges: list[tuple[int, int]] = [
         (i, j)
         for i in range(wallet_count)
         for j in range(i + 1, wallet_count)
     ]
     random.shuffle(all_edges)
-    selected_edges = all_edges[: min(tx_count, len(all_edges))]
+    selected_edges = all_edges[:min(tx_count, len(all_edges))]
 
-    # Назначаем временны́е метки в строгом порядке (возрастание, шаг 60–600 сек)
+    # Временны́е метки строго возрастают: шаг 60–600 секунд между транзакциями
     transactions: list[dict] = []
     current_ts = base_ts
     for src_idx, dst_idx in selected_edges:
@@ -83,14 +75,15 @@ def generate_transactions(
             'valid':     True,
         })
 
-    # Перемешиваем порядок строк (алгоритм сам сортирует по ts)
+    # Перемешиваем строки — алгоритм сам сортирует по timestamp
     random.shuffle(transactions)
     return transactions
 
 
 def transactions_to_text(transactions: list[dict]) -> str:
-    """Сериализует транзакции в текстовый формат для поля <textarea>."""
-    lines = []
-    for tx in transactions:
-        lines.append(f"{tx['sender']} {tx['receiver']} {tx['amount']:.2f} {tx['timestamp']}")
+    """Сериализует транзакции в текстовый формат «sender receiver amount timestamp»."""
+    lines = [
+        f"{tx['sender']} {tx['receiver']} {tx['amount']:.2f} {tx['timestamp']}"
+        for tx in transactions
+    ]
     return '\n'.join(lines)

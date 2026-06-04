@@ -1,8 +1,3 @@
-"""
-Модульные тесты для варианта DFS (поиск в глубину).
-Покрывают: dfs_algorithm.py и validators/dfs_validator.py
-"""
-
 import sys
 import os
 import unittest
@@ -21,24 +16,19 @@ from validators.dfs_validator import (
     filter_valid,
 )
 
-
-# ─────────────────────────────────────────────
 #  Вспомогательные данные
-# ─────────────────────────────────────────────
 
 def make_tx(sender, receiver, amount=100.0, timestamp=1):
     return {'sender': sender, 'receiver': receiver,
             'amount': amount, 'timestamp': timestamp}
 
 
-# ─────────────────────────────────────────────
 #  1. Тесты build_graph
-# ─────────────────────────────────────────────
 
 class TestBuildGraph(unittest.TestCase):
 
     def test_single_transaction(self):
-        """Граф из одной транзакции содержит одно ребро."""
+        #Граф из одной транзакции содержит одно ребро.
         txs = [make_tx('A', 'B', 50.0, 1)]
         g = build_graph(txs)
         self.assertIn('A', g)
@@ -49,7 +39,7 @@ class TestBuildGraph(unittest.TestCase):
         self.assertEqual(ts, 1)
 
     def test_multiple_edges_sorted_by_timestamp(self):
-        """Рёбра из одной вершины сортируются по временной метке."""
+        #Рёбра из одной вершины сортируются по временной метке.
         txs = [
             make_tx('A', 'C', 10.0, 30),
             make_tx('A', 'B', 20.0, 10),
@@ -60,20 +50,19 @@ class TestBuildGraph(unittest.TestCase):
         self.assertEqual(timestamps, sorted(timestamps))
 
     def test_no_transactions_returns_empty(self):
-        """Пустой список транзакций → пустой граф."""
+        #Пустой список транзакций → пустой граф.
         g = build_graph([])
         self.assertEqual(g, {})
 
     def test_receiver_not_in_adjacency_if_no_outgoing(self):
-        """Вершина, у которой нет исходящих, не создаёт ключ в словаре."""
+        #Вершина, у которой нет исходящих, не создаёт ключ в словаре.
         txs = [make_tx('A', 'B')]
         g = build_graph(txs)
         self.assertNotIn('B', g)
 
 
-# ─────────────────────────────────────────────
 #  2. Тесты get_all_nodes
-# ─────────────────────────────────────────────
+
 
 class TestGetAllNodes(unittest.TestCase):
 
@@ -92,16 +81,15 @@ class TestGetAllNodes(unittest.TestCase):
         self.assertEqual(nodes, {'A', 'B', 'C'})
 
 
-# ─────────────────────────────────────────────
 #  3. Тесты find_longest_path — основная логика DFS
-# ─────────────────────────────────────────────
+
 
 class TestFindLongestPath(unittest.TestCase):
 
-    # ── 3.1 Граничные случаи ──────────────────
+    # 3.1 Граничные случаи
 
     def test_empty_transactions_returns_empty_result(self):
-        """Пустой список → нулевой результат, без ошибок."""
+        #Пустой список → нулевой результат, без ошибок.
         res = find_longest_path([])
         self.assertIsNone(res['path'])
         self.assertEqual(res['max_chain_len'], 0)
@@ -109,23 +97,23 @@ class TestFindLongestPath(unittest.TestCase):
         self.assertEqual(res['total_tx'], 0)
 
     def test_single_transaction_chain_length_1(self):
-        """Одна транзакция образует цепочку длиной 1."""
+        #Одна транзакция образует цепочку длиной 1.
         txs = [make_tx('A', 'B', 100.0, 1)]
         res = find_longest_path(txs)
         self.assertEqual(res['max_chain_len'], 1)
         self.assertIsNotNone(res['path'])
 
     def test_self_loop_does_not_crash(self):
-        """Если вдруг передать A→A — алгоритм не падает."""
+        #Если вдруг передать A→A — алгоритм не падает.
         txs = [{'sender': 'A', 'receiver': 'A', 'amount': 10.0, 'timestamp': 1}]
         # DFS пропустит A→A (receiver в visited), результат — пусто
         res = find_longest_path(txs)
         self.assertEqual(res['max_chain_len'], 0)
 
-    # ── 3.2 Линейная цепочка ─────────────────
+    # 3.2 Линейная цепочка
 
     def test_linear_chain_correct_length(self):
-        """A→B→C→D — цепочка длиной 3."""
+        #A→B→C→D — цепочка длиной 3.
         txs = [
             make_tx('A', 'B', 10.0, 1),
             make_tx('B', 'C', 20.0, 2),
@@ -136,7 +124,7 @@ class TestFindLongestPath(unittest.TestCase):
         self.assertFalse(res['path']['is_suspicious'])
 
     def test_linear_chain_correct_total_amount(self):
-        """Сумма по пути A→B→C должна совпадать с суммой рёбер."""
+        #Сумма по пути A→B→C должна совпадать с суммой рёбер.
         txs = [
             make_tx('A', 'B', 50.0, 1),
             make_tx('B', 'C', 75.5, 2),
@@ -145,7 +133,7 @@ class TestFindLongestPath(unittest.TestCase):
         self.assertAlmostEqual(res['path']['total_amount'], 125.5, places=2)
 
     def test_linear_chain_correct_nodes(self):
-        """Узлы пути A→B→C должны быть ['A','B','C']."""
+        #Узлы пути A→B→C должны быть ['A','B','C'].
         txs = [
             make_tx('A', 'B', 10.0, 1),
             make_tx('B', 'C', 10.0, 2),
@@ -153,10 +141,10 @@ class TestFindLongestPath(unittest.TestCase):
         res = find_longest_path(txs)
         self.assertEqual(res['path']['nodes'], ['A', 'B', 'C'])
 
-    # ── 3.3 Хронологическое условие ──────────
+    # 3.3 Хронологическое условие
 
     def test_chronological_order_enforced(self):
-        """Транзакция с меньшим ts не продолжает путь — нарушение хронологии."""
+        #Транзакция с меньшим ts не продолжает путь — нарушение хронологии.
         # B→C идёт раньше A→B, поэтому A→B→C невозможно
         txs = [
             make_tx('A', 'B', 10.0, 10),
@@ -167,7 +155,7 @@ class TestFindLongestPath(unittest.TestCase):
         self.assertEqual(res['max_chain_len'], 1)
 
     def test_equal_timestamps_not_allowed(self):
-        """Транзакции с одинаковым ts не могут образовывать путь."""
+        #Транзакции с одинаковым ts не могут образовывать путь.
         txs = [
             make_tx('A', 'B', 10.0, 5),
             make_tx('B', 'C', 10.0, 5),   # ts равен — не проходит
@@ -175,7 +163,7 @@ class TestFindLongestPath(unittest.TestCase):
         res = find_longest_path(txs)
         self.assertEqual(res['max_chain_len'], 1)
 
-    # ── 3.4 Разветвлённый граф ────────────────
+    # 3.4 Разветвлённый граф 
 
     def test_branched_graph_finds_longest(self):
         """Если два пути от A, берётся длиннейший."""
@@ -188,7 +176,7 @@ class TestFindLongestPath(unittest.TestCase):
         self.assertEqual(res['max_chain_len'], 2)
 
     def test_tiebreak_by_total_amount(self):
-        """При равной длине выигрывает путь с большей суммой."""
+        #При равной длине выигрывает путь с большей суммой.
         txs = [
             # Путь A→B→C: суммы 10+10 = 20
             make_tx('A', 'B', 10.0, 1),
@@ -201,10 +189,10 @@ class TestFindLongestPath(unittest.TestCase):
         self.assertEqual(res['max_chain_len'], 2)
         self.assertAlmostEqual(res['path']['total_amount'], 100.0, places=2)
 
-    # ── 3.5 Флаг подозрительности ────────────
+    # 3.5 Флаг подозрительности 
 
     def test_suspicious_flag_when_chain_meets_threshold(self):
-        """Цепочка >= threshold → is_suspicious = True."""
+        #Цепочка >= threshold → is_suspicious = True.
         txs = [
             make_tx('A', 'B', 1.0, 1),
             make_tx('B', 'C', 1.0, 2),
@@ -216,7 +204,7 @@ class TestFindLongestPath(unittest.TestCase):
         self.assertEqual(res['suspicious_count'], 1)
 
     def test_not_suspicious_when_below_threshold(self):
-        """Цепочка < threshold → is_suspicious = False."""
+        #Цепочка < threshold → is_suspicious = False.
         txs = [
             make_tx('A', 'B', 1.0, 1),
             make_tx('B', 'C', 1.0, 2),
@@ -226,12 +214,12 @@ class TestFindLongestPath(unittest.TestCase):
         self.assertEqual(res['suspicious_count'], 0)
 
     def test_suspicious_flag_exactly_at_threshold(self):
-        """Цепочка ровно равная threshold → is_suspicious = True."""
+        #Цепочка ровно равная threshold → is_suspicious = True.
         txs = [make_tx(chr(65+i), chr(66+i), 1.0, i+1) for i in range(3)]  # длина 3
         res = find_longest_path(txs, threshold=3)
         self.assertTrue(res['path']['is_suspicious'])
 
-    # ── 3.6 Статистика ───────────────────────
+    # 3.6 Статистика
 
     def test_total_tx_count(self):
         txs = [make_tx('A', 'B', 1.0, i) for i in range(5)]
@@ -244,7 +232,7 @@ class TestFindLongestPath(unittest.TestCase):
         self.assertEqual(res['total_wallets'], 4)  # A, B, C, D
 
     def test_transaction_table_in_suspicious_path_flag(self):
-        """Транзакции, входящие в подозрительный путь, помечены in_suspicious_path."""
+        #Транзакции, входящие в подозрительный путь, помечены in_suspicious_path.
         txs = [
             make_tx('A', 'B', 1.0, 1),
             make_tx('B', 'C', 1.0, 2),
@@ -257,10 +245,10 @@ class TestFindLongestPath(unittest.TestCase):
                  for r in res['transactions']}
         self.assertFalse(table.get(('X', 'Y'), True))
 
-    # ── 3.7 Устойчивость ─────────────────────
+    # 3.7 Устойчивость
 
     def test_disconnected_graph(self):
-        """Два изолированных пути — алгоритм находит длиннейший без ошибок."""
+        #Два изолированных пути — алгоритм находит длиннейший без ошибок.
         txs = [
             make_tx('A', 'B', 1.0, 1),                       # путь длина 1
             make_tx('X', 'Y', 1.0, 1),
@@ -270,7 +258,7 @@ class TestFindLongestPath(unittest.TestCase):
         self.assertEqual(res['max_chain_len'], 2)
 
     def test_cycle_not_revisited(self):
-        """DFS не посещает одну вершину дважды (нет зацикливания)."""
+        #DFS не посещает одну вершину дважды (нет зацикливания).
         txs = [
             make_tx('A', 'B', 1.0, 1),
             make_tx('B', 'C', 1.0, 2),
@@ -281,14 +269,11 @@ class TestFindLongestPath(unittest.TestCase):
         self.assertIsNotNone(res)
         self.assertGreater(res['max_chain_len'], 0)
 
-
-# ─────────────────────────────────────────────
 #  4. Тесты parse_transactions (валидатор)
-# ─────────────────────────────────────────────
 
 class TestParseTransactions(unittest.TestCase):
 
-    # ── 4.1 Корректный ввод ───────────────────
+    # 4.1 Корректный ввод 
 
     def test_valid_single_line(self):
         parsed, errors = parse_transactions('Alice Bob 100.0 1000')
@@ -308,7 +293,7 @@ class TestParseTransactions(unittest.TestCase):
         parsed, errors = parse_transactions(text)
         self.assertEqual(len(parsed), 2)  # пустые строки не добавляются
 
-    # ── 4.2 Ошибочный ввод ───────────────────
+    # 4.2 Ошибочный ввод
 
     def test_empty_input_returns_error(self):
         parsed, errors = parse_transactions('')
@@ -352,12 +337,12 @@ class TestParseTransactions(unittest.TestCase):
         self.assertFalse(parsed[0]['valid'])
 
     def test_zero_timestamp_valid(self):
-        """Нулевой timestamp допустим (>= 0)."""
+        #Нулевой timestamp допустим (>= 0).
         parsed, errors = parse_transactions('A B 100.0 0')
         self.assertTrue(parsed[0]['valid'])
 
     def test_all_invalid_lines_generates_global_error(self):
-        """Если нет ни одной корректной строки — глобальная ошибка."""
+        #Если нет ни одной корректной строки — глобальная ошибка
         text = "A A 100.0 1\nB B 200.0 2"
         parsed, errors = parse_transactions(text)
         self.assertTrue(len(errors) > 0)
@@ -369,10 +354,7 @@ class TestParseTransactions(unittest.TestCase):
         self.assertEqual(valid_count, 2)   # A→B и D→E
         self.assertEqual(len(errors), 0)   # есть корректные → нет глобальной ошибки
 
-
-# ─────────────────────────────────────────────
 #  5. Тесты validate_params
-# ─────────────────────────────────────────────
 
 class TestValidateParams(unittest.TestCase):
 
@@ -442,10 +424,7 @@ class TestValidateParams(unittest.TestCase):
         self.assertIn('tx_count', errors)
         self.assertIn('wallet_count', errors)
 
-
-# ─────────────────────────────────────────────
 #  6. Тесты filter_valid
-# ─────────────────────────────────────────────
 
 class TestFilterValid(unittest.TestCase):
 
@@ -484,10 +463,7 @@ class TestFilterValid(unittest.TestCase):
         ]
         self.assertEqual(filter_valid(rows), [])
 
-
-# ─────────────────────────────────────────────
 #  Запуск
-# ─────────────────────────────────────────────
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

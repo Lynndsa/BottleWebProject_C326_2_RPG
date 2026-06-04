@@ -1,5 +1,21 @@
 /**
- * tx_table.js — интерактивная таблица транзакций
+ * tx_table.js
+ *
+ * Интерактивная таблица транзакций: редактирование строк прямо в ячейках,
+ * валидация полей, синхронизация данных со скрытым <textarea> для отправки формы,
+ * загрузка из .txt-файла, генерация случайных данных, сохранение в файл.
+ *
+ * Ожидаемые DOM-элементы:
+ *   #tx-table-body     — <tbody> таблицы
+ *   #tx-row-template   — <template> строки (ячейки data-field="sender|receiver|amount|timestamp")
+ *   #tx-main-table     — <table> (data-initial-rows — опциональный JSON с начальными данными)
+ *   #tx-hidden-input   — <textarea> для передачи данных формой
+ *   #tx-row-count      — счётчик полностью заполненных строк
+ *   #tx-add-row        — кнопка «Добавить строку»
+ *   #tx-save-file      — кнопка «Сохранить в файл»
+ *   #tx-reset-table    — кнопка «Сбросить»
+ *   #tx-run            — кнопка «Запустить» (блокируется при ошибках)
+ *   #btn-random        — кнопка «Случайный» (использует #tx_count и #wallet_count)
  */
 (function () {
     'use strict';
@@ -15,7 +31,7 @@
     const hiddenInput = document.getElementById('tx-hidden-input');
     const tableEl = document.getElementById('tx-main-table');
 
-    // Блок для вывода ошибок валидации
+    // Блок ошибок создаётся динамически и вставляется сразу после таблицы.
     let errorBox = document.getElementById('tx-validation-errors');
     if (!errorBox) {
         errorBox = document.createElement('div');
@@ -28,10 +44,11 @@
 
     if (!tbody || !tmpl || !hiddenInput) return;
 
+    // rows — массив { id, el } всех строк; nextId — уникальный счётчик строк.
     let rows = [];
     let nextId = 1;
 
-    /* ── Инициализация из server-side данных ── */
+    // Читает data-initial-rows из <table> и заполняет таблицу; при отсутствии данных добавляет пустую строку.
     function init() {
         let initial = [];
         try {
@@ -48,7 +65,8 @@
         updateUI();
     }
 
-    /* ── Добавить строку ── */
+    // Клонирует шаблон строки, заполняет поля из data (опционально), навешивает обработчики.
+    // Возвращает <tr> для последующей фокусировки.
     function addRow(data) {
         const id = nextId++;
         const node = tmpl.content.cloneNode(true);
@@ -60,6 +78,7 @@
             const cell = tr.querySelector(`[data-field="${f}"]`);
             if (!cell) return;
             if (data && data[f] != null && data[f] !== '') cell.textContent = data[f];
+
             cell.addEventListener('input', () => { syncHidden(); updateUI(); });
             cell.addEventListener('blur', () => validateCell(cell, f));
             cell.addEventListener('focus', () => cell.classList.remove('tx-cell--error'));
@@ -72,7 +91,7 @@
         return tr;
     }
 
-    /* ── Удалить строку ── */
+    // Удаляет строку по id из DOM и из массива rows.
     function removeRow(id) {
         const idx = rows.findIndex(r => r.id === id);
         if (idx === -1) return;
@@ -82,7 +101,7 @@
         updateUI();
     }
 
-    /* ── Синхронизировать скрытый textarea ── */
+    // Собирает непустые строки в формат «sender receiver amount timestamp» и пишет в #tx-hidden-input.
     function syncHidden() {
         const lines = [];
         rows.forEach(r => {
@@ -94,18 +113,22 @@
         hiddenInput.value = lines.join('\n');
     }
 
+    // Считывает текст четырёх ячеек строки и возвращает объект с полями транзакции.
     function getRowValues(tr) {
         const get = f => {
             const el = tr.querySelector(`[data-field="${f}"]`);
             return el ? el.textContent.trim() : '';
         };
         return {
-            sender: get('sender'), receiver: get('receiver'),
-            amount: get('amount'), timestamp: get('timestamp')
+            sender: get('sender'),
+            receiver: get('receiver'),
+            amount: get('amount'),
+            timestamp: get('timestamp')
         };
     }
 
-    /* ── Валидация ячейки ── */
+    // Проверяет значение ячейки: amount — положительное число, timestamp — неотрицательное целое,
+    // sender/receiver — строка без пробелов. Добавляет/снимает класс tx-cell--error.
     function validateCell(cell, field) {
         const val = cell.textContent.trim();
         let ok = true;
@@ -120,14 +143,13 @@
         return ok;
     }
 
-    /* ── Получить список ошибок по всем строкам ── */
+    // Проходит по непустым строкам и возвращает массив текстовых сообщений об ошибках.
     function collectErrors() {
         const messages = [];
         rows.forEach((r, i) => {
             const v = getRowValues(r.el);
             const rowNum = i + 1;
 
-            // Проверяем только непустые строки
             const hasAny = v.sender || v.receiver || v.amount || v.timestamp;
             if (!hasAny) return;
 
@@ -144,20 +166,24 @@
         return messages;
     }
 
-    /* ── Показать / скрыть блок ошибок ── */
+    // Рендерит список ошибок в errorBox или скрывает блок, если ошибок нет.
     function showErrors(messages) {
         if (!errorBox) return;
         if (messages.length === 0) {
             errorBox.style.display = 'none';
             errorBox.innerHTML = '';
         } else {
-            errorBox.innerHTML = '<strong>⚠ Ошибки в таблице:</strong><ul style="margin:4px 0 0 16px;padding:0">' +
+            errorBox.innerHTML =
+                '<strong>⚠ Ошибки в таблице:</strong><ul style="margin:4px 0 0 16px;padding:0">' +
                 messages.map(m => `<li>${m}</li>`).join('') + '</ul>';
             errorBox.style.display = 'block';
         }
     }
 
-    /* ── Навигация клавишами ── */
+    // Клавиатурная навигация:
+    //   Enter       — следующая ячейка; из последней ячейки строки — новая строка
+    //   Tab         — из последней ячейки — новая строка
+    //   ArrowDown/Up — та же ячейка в строке ниже/выше
     function handleKeydown(e, tr, field) {
         const fields = ['sender', 'receiver', 'amount', 'timestamp'];
         const fi = fields.indexOf(field);
@@ -184,6 +210,7 @@
         }
     }
 
+    // Устанавливает фокус на ячейку и переносит каретку в конец её содержимого.
     function focusCell(tr, field) {
         const cell = tr.querySelector(`[data-field="${field}"]`);
         if (!cell) return;
@@ -196,26 +223,23 @@
         sel.addRange(range);
     }
 
-    /* ── Обновить UI ── */
+    // Перенумеровывает строки, обновляет счётчик, показывает ошибки,
+    // блокирует #tx-run и #tx-save-file при наличии ошибок или нулевом числе заполненных строк.
     function updateUI() {
         rows.forEach((r, i) => {
             r.el.querySelector('.tx-cell-num').textContent = i + 1;
         });
 
-        // Подсчёт заполненных строк
         const validCount = rows.filter(r => {
             const v = getRowValues(r.el);
             return v.sender && v.receiver && v.amount && v.timestamp;
         }).length;
         if (countEl) countEl.textContent = validCount;
 
-        // Собираем ошибки
         const errorMessages = collectErrors();
         showErrors(errorMessages);
 
-        // Блокируем кнопки при наличии ошибок или пустой таблице
-        const hasErrors = errorMessages.length > 0;
-        const isDisabled = validCount === 0 || hasErrors;
+        const isDisabled = validCount === 0 || errorMessages.length > 0;
 
         if (btnRun) {
             btnRun.disabled = isDisabled;
@@ -228,7 +252,7 @@
         }
     }
 
-    /* ── Загрузить строки в таблицу (сброс + заполнение) ── */
+    // Очищает таблицу и загружает строки из dataArray; при пустом массиве оставляет одну пустую строку.
     function loadRows(dataArray) {
         rows.forEach(r => r.el.remove());
         rows = [];
@@ -238,7 +262,8 @@
         updateUI();
     }
 
-    /* ── Публичный API для handleFileUpload ── */
+    // Публичный API для handleFileUpload. Парсит .txt-файл формата «sender receiver amount timestamp»,
+    // пропускает пустые строки и строки-комментарии (#), загружает валидные строки в таблицу.
     window.txTableLoadFile = function (text, filename) {
         const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
 
@@ -269,7 +294,8 @@
         loadRows(valid);
     };
 
-    /* ── Кнопка «Случайный» — fetch без перезагрузки ── */
+    // Отправляет POST /dfs/random-json с параметрами tx_count и wallet_count,
+    // получает JSON { rows: [...] } и загружает данные без перезагрузки страницы.
     if (btnRandom) {
         btnRandom.addEventListener('click', async () => {
             const txCount = document.getElementById('tx_count')?.value || '10';
@@ -295,7 +321,8 @@
         });
     }
 
-    /* ── Сохранить в .txt ── */
+    // Сохраняет полностью заполненные строки в .txt с заголовком-комментарием (дата сохранения).
+    // Имя файла: transactions_YYYYMMDD_HHmm.txt.
     if (btnSave) {
         btnSave.addEventListener('click', () => {
             if (btnSave.disabled) return;
@@ -304,14 +331,15 @@
                 .filter(v => v.sender && v.receiver && v.amount && v.timestamp)
                 .map(v => `${v.sender} ${v.receiver} ${v.amount} ${v.timestamp}`);
             if (!lines.length) return;
+
             const now = new Date();
             const pad = n => String(n).padStart(2, '0');
             const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ` +
                 `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-            const header = `# Сохранено: ${dateStr}`;
             const fileDate = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_` +
                 `${pad(now.getHours())}${pad(now.getMinutes())}`;
-            const text = [header, ...lines].join('\n');
+
+            const text = [`# Сохранено: ${dateStr}`, ...lines].join('\n');
             const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -320,6 +348,7 @@
         });
     }
 
+    // После подтверждения очищает таблицу и оставляет одну пустую строку.
     if (btnReset) {
         btnReset.addEventListener('click', () => {
             if (!confirm('Очистить таблицу? Все введённые данные будут удалены.')) return;
@@ -327,6 +356,7 @@
         });
     }
 
+    // Добавляет пустую строку и сразу фокусирует первую ячейку.
     if (btnAdd) {
         btnAdd.addEventListener('click', () => {
             const tr = addRow(); syncHidden(); updateUI();

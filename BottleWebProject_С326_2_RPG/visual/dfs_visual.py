@@ -1,18 +1,18 @@
 import math
 
-# ---------------------------------------------------------------------------
-# Цветовая палитра
-# ---------------------------------------------------------------------------
+# Цвета для подозрительных узлов и рёбер
 COLOR_SUS_FILL   = '#fff5f5'
 COLOR_SUS_STROKE = '#ef4444'
 COLOR_SUS_TEXT   = '#b91c1c'
 COLOR_SUS_EDGE   = '#ef4444'
 
+# Цвета для обычных узлов и рёбер
 COLOR_NORM_FILL   = '#f0f9ff'
 COLOR_NORM_STROKE = '#38bdf8'
 COLOR_NORM_TEXT   = '#0c4a6e'
 COLOR_NORM_EDGE   = '#0ea5e9'
 
+# Цвета для узлов-истоков
 COLOR_START_FILL  = '#0f172a'
 COLOR_START_TEXT  = '#ffffff'
 
@@ -20,9 +20,6 @@ COLOR_BG   = '#f8fafc'
 COLOR_GRID = '#e2e8f0'
 
 
-# ---------------------------------------------------------------------------
-# Layout: исток в центре, остальные по кругу (или двум кольцам)
-# ---------------------------------------------------------------------------
 def _circular_layout(
     nodes: list[str],
     sources: set[str],
@@ -30,6 +27,16 @@ def _circular_layout(
     width: int,
     height: int,
 ) -> dict[str, tuple[float, float]]:
+    """
+    Вычисляет координаты узлов на холсте.
+
+    Схема размещения зависит от числа истоков:
+    - один исток → в центре, остальные по внешнему кольцу;
+    - нет истоков → все по одному кольцу;
+    - несколько истоков → внутреннее кольцо (истоки) + внешнее (остальные).
+
+    Подозрительные узлы группируются вместе на кольце.
+    """
     if not nodes:
         return {}
 
@@ -39,24 +46,22 @@ def _circular_layout(
     src_list  = [n for n in nodes if n in sources]
     rest_list = [n for n in nodes if n not in sources]
 
-    # Сортируем: подозрительные узлы группируем вместе на кольце
+    # Подозрительные узлы идут первыми на кольце
     rest_list.sort(key=lambda n: (0 if n in suspicious_nodes else 1, n))
 
     total_outer = len(rest_list)
 
     if len(src_list) == 1 and total_outer > 0:
-        # Один исток — в центре, остальные по кругу
         pos[src_list[0]] = (cx, cy)
 
         r_outer = min(cx, cy) - 60
         for i, node in enumerate(rest_list):
-            # Начинаем с верхней точки (-π/2), по часовой
+            # Начинаем с верхней точки (-π/2) и идём по часовой стрелке
             angle = -math.pi / 2 + 2 * math.pi * i / total_outer
             pos[node] = (cx + r_outer * math.cos(angle),
                          cy + r_outer * math.sin(angle))
 
     elif len(src_list) == 0:
-        # Нет явного истока — все по кругу
         all_nodes = rest_list
         r = min(cx, cy) - 60
         for i, node in enumerate(all_nodes):
@@ -65,30 +70,24 @@ def _circular_layout(
                          cy + r * math.sin(angle))
 
     else:
-        # Несколько истоков — внутреннее кольцо + внешнее
-        n_inner = len(src_list)
-        n_outer = total_outer
-
         r_inner = min(cx, cy) * 0.38
         r_outer = min(cx, cy) - 60
 
         for i, node in enumerate(src_list):
-            angle = -math.pi / 2 + 2 * math.pi * i / max(n_inner, 1)
+            angle = -math.pi / 2 + 2 * math.pi * i / max(len(src_list), 1)
             pos[node] = (cx + r_inner * math.cos(angle),
                          cy + r_inner * math.sin(angle))
 
         for i, node in enumerate(rest_list):
-            angle = -math.pi / 2 + 2 * math.pi * i / max(n_outer, 1)
+            angle = -math.pi / 2 + 2 * math.pi * i / max(total_outer, 1)
             pos[node] = (cx + r_outer * math.cos(angle),
                          cy + r_outer * math.sin(angle))
 
     return pos
 
 
-# ---------------------------------------------------------------------------
-# SVG-примитивы
-# ---------------------------------------------------------------------------
 def _svg_marker(marker_id: str, color: str) -> str:
+    """SVG-маркер стрелки заданного цвета для атрибута marker-end."""
     return (
         f'<marker id="{marker_id}" markerWidth="8" markerHeight="8" '
         f'refX="6" refY="4" orient="auto" markerUnits="strokeWidth">'
@@ -98,6 +97,7 @@ def _svg_marker(marker_id: str, color: str) -> str:
 
 
 def _node_radius(label: str) -> int:
+    """Радиус узла: растёт с длиной метки, зажат в диапазоне [28, 38]."""
     return max(28, min(38, 10 + len(label) * 3))
 
 
@@ -108,26 +108,26 @@ def _svg_edge_curve(
     tx_number: int,
     color: str,
     marker_id: str,
-    curvature: float = 0.0,   # 0 = прямая, >0 = кривая влево, <0 = вправо
+    curvature: float = 0.0,
 ) -> str:
     """
-    Рисует квадратичную кривую Безье между двумя узлами.
-    curvature задаёт насколько сильно и в какую сторону изогнута линия.
+    Рисует квадратичную кривую Безье от узла (x1,y1) до (x2,y2).
+
+    curvature — смещение контрольной точки перпендикулярно оси ребра:
+    0 = прямая линия, >0 = изгиб влево, <0 = вправо.
+    На середине кривой рисуется бейджик с номером транзакции.
     """
     dx, dy = x2 - x1, y2 - y1
     dist = math.hypot(dx, dy) or 1
     ux, uy = dx / dist, dy / dist
-    # перпендикуляр
-    px, py = -uy, ux
+    px, py = -uy, ux  # единичный перпендикуляр
 
-    # Контрольная точка Безье — смещение перпендикулярно к середине
+    # Контрольная точка Безье — середина отрезка, смещённая перпендикулярно
     mid_x = (x1 + x2) / 2 + px * curvature
     mid_y = (y1 + y2) / 2 + py * curvature
 
-    # Начало и конец у границ узлов
-    # Для кривой Безье направление в начале/конце определяется контрольной точкой
-    # Находим направление от start к control point и от control к end
     def border_point(ox, oy, tx, ty, r):
+        """Точка на границе узла в направлении контрольной точки."""
         ddx, ddy = tx - ox, ty - oy
         d = math.hypot(ddx, ddy) or 1
         return ox + ddx / d * r, oy + ddy / d * r
@@ -135,10 +135,10 @@ def _svg_edge_curve(
     sx, sy = border_point(x1, y1, mid_x, mid_y, r1)
     ex, ey = border_point(x2, y2, mid_x, mid_y, r2)
 
-    # Середина кривой для бейджика (параметр t=0.5 квадратичного Безье)
+    # Точка середины кривой Безье при t=0.5: B(0.5) = 0.25*P0 + 0.5*P1 + 0.25*P2
     bx = 0.25 * x1 + 0.5 * mid_x + 0.25 * x2
     by = 0.25 * y1 + 0.5 * mid_y + 0.25 * y2
-    # Немного смещаем бейджик чтобы не лежал прямо на линии
+    # Небольшой сдвиг бейджика от линии, чтобы не перекрывал её
     badge_off = 12 if curvature >= 0 else -12
     bx += px * badge_off * 0.3
     by += py * badge_off * 0.3
@@ -166,6 +166,12 @@ def _svg_node(
     fill: str, stroke: str, text_color: str,
     is_start: bool = False,
 ) -> str:
+    """
+    Рисует узел: круг с меткой.
+
+    Метки длиннее 6 символов разбиваются на две строки.
+    Для узлов-истоков добавляется подпись «исток» снизу.
+    """
     circle = (
         f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r}" '
         f'fill="{fill}" stroke="{stroke}" stroke-width="2.5"/>'
@@ -194,10 +200,8 @@ def _svg_node(
     return circle + '\n' + texts
 
 
-# ---------------------------------------------------------------------------
-# Легенда и заглушка
-# ---------------------------------------------------------------------------
 def _svg_legend(width: int, height: int) -> str:
+    """Легенда в правом нижнем углу: обозначения цветов рёбер."""
     lw, lh = 200, 60
     lx = width - lw - 12
     ly = height - lh - 12
@@ -216,6 +220,7 @@ def _svg_legend(width: int, height: int) -> str:
 
 
 def _empty_svg(width: int, height: int) -> str:
+    """SVG-заглушка для случая, когда транзакций нет."""
     return (
         f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg" '
         f'style="width:100%;height:100%;display:block;">'
@@ -227,16 +232,19 @@ def _empty_svg(width: int, height: int) -> str:
     )
 
 
-# ---------------------------------------------------------------------------
-# Основная функция: только SVG
-# ---------------------------------------------------------------------------
 def render_graph_svg(
     transactions: list[dict],
     suspicious_paths: list[dict] | None = None,
     width: int = 720,
     height: int = 520,
 ) -> str:
+    """
+    Строит SVG-граф транзакций.
 
+    Каждая транзакция — ориентированное ребро sender → receiver с номером.
+    Подозрительные узлы и рёбра выделяются красным цветом.
+    Параллельные рёбра между одной парой узлов изгибаются, чтобы не сливаться.
+    """
     if not transactions:
         return _empty_svg(width, height)
 
@@ -258,6 +266,7 @@ def render_graph_svg(
 
     all_nodes = sorted(all_nodes_set)
 
+    # Исток — узел, который только отправляет, но никогда не получает
     receivers = {tx['receiver'] for tx in transactions}
     sources   = {tx['sender']   for tx in transactions} - receivers
 
@@ -271,16 +280,14 @@ def render_graph_svg(
         + '</defs>'
     )
 
-    # Считаем количество рёбер между каждой парой для правильного curvature
+    # Считаем, сколько раз встречается каждая направленная пара (для кривизны)
     pair_count: dict[tuple, int] = {}
     pair_index: dict[tuple, int] = {}
     for tx in transactions:
         key = (tx['sender'], tx['receiver'])
         pair_count[key] = pair_count.get(key, 0) + 1
 
-    # Базовая кривизна зависит от расстояния между узлами
-    # Чем ближе — тем сильнее кривая (иначе бейджик залезет на узел)
-    CURVE_BASE = 40  # пикселей
+    CURVE_BASE = 40  # базовое смещение кривой в пикселях
 
     edges_svg = []
     nodes_svg = []
@@ -301,13 +308,12 @@ def render_graph_svg(
         pair_index[key] = idx + 1
         total = pair_count[key]
 
-        # Распределяем кривизну симметрично: [-curve, 0, +curve] и т.д.
-        # Для одного ребра — небольшой изгиб чтобы не сливалось с обратным
         if total == 1:
-            # Проверяем нет ли обратного ребра — тогда изгибаем
+            # Изгибаем, только если есть обратное ребро — иначе линии сольются
             has_reverse = (r, s) in pair_count
             curvature = CURVE_BASE * 0.6 if has_reverse else 0.0
         else:
+            # Несколько рёбер между той же парой — симметрично расходятся
             step = CURVE_BASE * 1.2
             curvature = (idx - (total - 1) / 2) * step
 
@@ -356,9 +362,8 @@ def render_graph_svg(
     return svg
 
 
-# ---------------------------------------------------------------------------
-# JS pan/zoom (без изменений)
-# ---------------------------------------------------------------------------
+# JS-код pan/zoom: вставляется в HTML один раз, привязывается к конкретному
+# контейнеру через подстановку плейсхолдеров DFS_*_ID и DFS_SVG_W/H.
 _JS = """
 <script>
 (function() {
@@ -475,6 +480,12 @@ def render_graph_html(
     height: int = 520,
     container_height: int = 540,
 ) -> str:
+    """
+    Оборачивает SVG-граф в HTML-контейнер с кнопками зума и pan/zoom на JS.
+
+    Генерирует уникальный uid для каждого вызова, чтобы несколько графов
+    на одной странице не конфликтовали по id элементов.
+    """
     import hashlib, os
     uid = hashlib.md5(os.urandom(8)).hexdigest()[:6]
 
@@ -496,6 +507,7 @@ def render_graph_html(
     )
     hint = '<span class="dfs-hint">Тащи · колёсико — зум · двойной клик — сброс</span>'
 
+    # Подставляем id элементов и размеры SVG в шаблон JS
     js = (
         _JS
         .replace('DFS_WRAP_ID',    wrap_id)

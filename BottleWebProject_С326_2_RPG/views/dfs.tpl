@@ -11,7 +11,7 @@
     <h1 class="page-title">Анализ финансовых транзакций</h1>
     <p class="subtitle">Поиск максимальных бесциклических путей в графе блокчейн-переводов для выявления схем отмывания денег.</p>
 
-    <!-- ТЕОРИЯ -->
+    <!-- Теоретическая справка (аккордеон) -->
     <div class="accordion">
         <button class="accordion-header" type="button">
             <span>📖 Описание алгоритма и теоретическая справка</span>
@@ -23,7 +23,6 @@
                     <p>Входные данные — множество финансовых транзакций вида <strong>(отправитель, получатель, сумма, временная метка)</strong>. Операции моделируются в виде <strong>ориентированного взвешенного графа</strong>, где вершины — кошельки, дуги — денежные переводы.</p>
                     <p>Цель — обнаружение длинных последовательностей переводов, характерных для стадии <strong>слоинга (Layering)</strong> при сокрытии происхождения средств.</p>
                 </div>
-                    <!-- Заголовок 3 уровня -->
                 <h3>⚙ Этапы работы алгоритма</h3>
                 <div class="algo-flow">
                     <div class="flow-step">Транзакции</div><div class="flow-arrow">→</div>
@@ -40,7 +39,6 @@
                     <li><strong>Контроль циклов</strong> — запрещается повторное посещение уже пройденных вершин.</li>
                     <li><strong>Выделение подозрительных путей</strong> — цепочки длиннее порога отмечаются как опасные.</li>
                 </ol>
-                    <!-- Таблица -->
                 <h3>📊 Используемые структуры данных</h3>
                 <table class="theory-table">
                     <thead><tr><th>Структура данных</th><th>Назначение</th></tr></thead>
@@ -51,7 +49,6 @@
                         <tr><td>List paths</td><td>Сохранение найденных маршрутов</td></tr>
                     </tbody>
                 </table>
-                <!-- Ненумерованный список -->
                 <h3>⚠ Признаки подозрительной активности</h3>
                 <div class="warning-box">
                     <ul>
@@ -62,7 +59,6 @@
                         <li>Попытка скрыть исходный источник средств.</li>
                     </ul>
                 </div>
-                <!-- Строки с переносами на следующую строчку -->
                 <div class="example-block">
                     <strong>Формат списка смежности:</strong><br><br>
                     <code>adj[v] = {(u, w, t)}</code><br><br>
@@ -73,7 +69,7 @@
         </div>
     </div>
 
-    <!-- ПРИМЕР РАЗБОРА -->
+    <!-- Разбор примера с пошаговым DFS (аккордеон) -->
     <div class="example-walkthrough">
         <div class="ew-header">
             <div class="ew-header-left">
@@ -182,7 +178,6 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
                             <span class="chain-tag suspicious">⚠ Подозрительный</span>
                             <span class="ew-path-stat">4 транзакции · 196 700 BTC</span>
                         </div>
-                        <!-- Строковый контейнер -->
                         <div class="ew-path-route">
                             <span class="ew-node ew-node--start">A1B2C3</span><span class="ew-arrow ew-arrow--sus">→</span>
                             <span class="ew-node ew-node--sus">D4E5F6</span><span class="ew-arrow ew-arrow--sus">→</span>
@@ -299,13 +294,13 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
         </div>
     </div>
 
-    <!-- ОСНОВНОЙ РЯД: ФОРМА + ГРАФ -->
+    <!-- Форма ввода и граф -->
     <div class="tx-layout">
         <div class="tx-form">
             <form method="POST" action="/dfs" enctype="multipart/form-data" novalidate class="card" id="dfs-form">
                 <input type="hidden" id="input_mode" name="input_mode" value="{{_mode}}">
 
-                <!-- скрытый textarea — сюда JS записывает строки таблицы перед отправкой -->
+                <!-- Скрытый textarea: JS записывает сюда строки таблицы перед отправкой формы -->
                 <textarea id="tx-hidden-input" name="transactions" style="display:none;"></textarea>
 
                 <div class="card-header">
@@ -389,7 +384,7 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
         </div>
     </div>
 
-    <!-- ИНТЕРАКТИВНАЯ ТАБЛИЦА ТРАНЗАКЦИЙ -->
+    <!-- Интерактивная таблица для ручного ввода транзакций -->
     <div class="tx-editor-wrap">
         <div class="tx-editor-toolbar">
             <h2>
@@ -403,6 +398,7 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
         </div>
 
         <div class="tx-table-scroll">
+            <!-- data-initial-rows: предзаполненные строки из загруженного файла (JSON) -->
             <table class="tx-edit-table" id="tx-main-table"
                    data-initial-rows='{{!__import__('json').dumps([{"sender": r.get("sender",""), "receiver": r.get("receiver",""), "amount": str(r.get("amount","")), "timestamp": str(r.get("timestamp",""))} for r in (_parsed_file or []) if r.get("valid", True)])}}'>
                 <thead>
@@ -421,7 +417,7 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
         </div>
     </div>
 
-    <!-- Шаблон строки таблицы -->
+    <!-- Шаблон одной строки таблицы (клонируется JS-модулем tx_table.js) -->
     <template id="tx-row-template">
         <tr>
             <td><span class="tx-cell-num"></span></td>
@@ -503,6 +499,7 @@ A1B2C3 P6Q7R8 3000.00 1699999800</pre>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // Открытие/закрытие аккордеонов теории и примера
     const accordion = document.querySelector('.accordion');
     accordion.querySelector('.accordion-header').addEventListener('click', () => accordion.classList.toggle('open'));
 
@@ -510,6 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ew) ew.querySelector('.ew-header').addEventListener('click', () => ew.classList.toggle('open'));
 });
 
+// Копирует пример транзакций в буфер обмена и временно меняет текст кнопки
 function copyExample() {
     const text = `A1B2C3 D4E5F6 50000.00 1700000001\nD4E5F6 G7H8I9 49500.00 1700000120\nG7H8I9 J0K1L2 49000.00 1700000300\nJ0K1L2 M3N4O5 48200.00 1700000540\nP6Q7R8 S9T0U1 1200.00 1700001000\nS9T0U1 V2W3X4 600.00 1700001200\nA1B2C3 P6Q7R8 3000.00 1699999800`;
     navigator.clipboard.writeText(text).then(() => {
@@ -520,18 +518,17 @@ function copyExample() {
     });
 }
 
+// Читает .txt-файл и передаёт содержимое в txTableLoadFile для загрузки в таблицу
 function handleFileUpload(input) {
     const file = input.files[0];
     if (!file) return;
 
-    // Проверяем расширение
     if (!file.name.toLowerCase().endsWith('.txt')) {
         showFileError('❌ Неверный формат файла. Принимается только .txt');
         input.value = '';
         return;
     }
 
-    // Проверяем размер
     if (file.size === 0) {
         showFileError('❌ Файл пустой.');
         input.value = '';
@@ -556,13 +553,13 @@ function handleFileUpload(input) {
     input.value = '';
 }
 
+// Показывает баннер с ошибкой под card-header; создаёт элемент при первом вызове
 function showFileError(msg) {
     let banner = document.getElementById('file-error-banner');
     if (!banner) {
         banner = document.createElement('div');
         banner.id = 'file-error-banner';
         banner.className = 'error-banner';
-        // вставляем после card-header
         const cardHeader = document.querySelector('.card-header');
         if (cardHeader) cardHeader.after(banner);
     }
