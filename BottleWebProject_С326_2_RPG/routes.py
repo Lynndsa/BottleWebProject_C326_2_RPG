@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 import json
+import pickle
+import os
 import random
 import re
 import io
 import zipfile
-from bottle import route, post, run, template, static_file, request, response
+from bottle import route, post, run, template, static_file, request, response, view
 
 # Импорты модулей проекта
-from tools.tsp_tools import generate_random_graph, log_to_file
+from tools.tsp_tools import generate_random_graph, build_zip,log_to_file
 from validators.tsp_validator import parse_input, parse_txt_file
 from visual.tsp_visual import build_svg
 from algorithms.tsp_algorithm import solve_tsp, get_full_path, dijkstra_simple
@@ -22,19 +24,21 @@ from validators.bfs_validator import validate_bfs_params
 from visual.bfs_visual import create_graph_from_edges, generate_graph_svg, generate_infection_chart
 from tools.bfs_tools import parse_bfs_config_file, generate_random_bfs_network
 
-import pickle
-import os
-import json
-from tools.tsp_tools import generate_random_graph
-from bottle import route, view, static_file, run, template, request, response
-from tools.dfs_tools    import generate_transactions, transactions_to_text
-from validators.dfs_validator import parse_transactions, filter_valid, validate_params
-from algorithms.dfs_algorithm import find_longest_path
-from visual.dfs_visual    import render_graph_svg, render_graph_html
-from tools.tsp_tools import generate_random_graph, build_zip,log_to_file
-from validators.tsp_validator import parse_input, parse_txt_file
-from visual.tsp_visual import build_svg
-from algorithms.tsp_algorithm import solve_tsp, get_full_path,dijkstra_simple
+def _read_file(upload) -> str:
+    """Читает загруженный файл транзакций. При ошибке возвращает пустую строку."""
+    if not upload or not getattr(upload, 'filename', None):
+        return ''
+    try:
+        raw_bytes = upload.file.read()
+        # Пробуем UTF-8, затем cp1251
+        for enc in ('utf-8-sig', 'utf-8', 'cp1251', 'latin-1'):
+            try:
+                return raw_bytes.decode(enc)
+            except UnicodeDecodeError:
+                continue
+        return ''  # не удалось декодировать
+    except Exception:
+        return ''
 
 @route('/favicon.ico')
 def favicon():

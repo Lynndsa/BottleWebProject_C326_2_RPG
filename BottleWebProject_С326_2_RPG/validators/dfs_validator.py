@@ -1,6 +1,12 @@
-
 def parse_transactions(raw_text: str) -> tuple[list[dict], list[str]]:
-   
+    """
+    Парсит сырой текст транзакций — по одной на строку в формате:
+        sender receiver amount timestamp
+
+    Возвращает кортеж (parsed_rows, global_errors):
+    - parsed_rows  : список словарей по каждой строке (включая невалидные, с полем error)
+    - global_errors: список общих ошибок (например, ни одной валидной строки)
+    """
     if not raw_text or not raw_text.strip():
         return [], ['Поле транзакций не может быть пустым.']
 
@@ -11,7 +17,7 @@ def parse_transactions(raw_text: str) -> tuple[list[dict], list[str]]:
     for i, line in enumerate(lines):
         line = line.strip()
         if not line:
-            continue  # пропускаем пустые строки
+            continue
 
         parts = line.split()
         row: dict = {
@@ -30,7 +36,6 @@ def parse_transactions(raw_text: str) -> tuple[list[dict], list[str]]:
 
         sender, receiver, amount_str, ts_str = parts[0], parts[1], parts[2], parts[3]
 
-        # Отправитель и получатель
         if sender == receiver:
             row['sender']   = sender
             row['receiver'] = receiver
@@ -38,7 +43,6 @@ def parse_transactions(raw_text: str) -> tuple[list[dict], list[str]]:
             parsed.append(row)
             continue
 
-        # Сумма
         try:
             amount = float(amount_str)
             if amount <= 0:
@@ -51,7 +55,6 @@ def parse_transactions(raw_text: str) -> tuple[list[dict], list[str]]:
             parsed.append(row)
             continue
 
-        # Временна́я метка
         try:
             ts = int(ts_str)
             if ts < 0:
@@ -65,7 +68,6 @@ def parse_transactions(raw_text: str) -> tuple[list[dict], list[str]]:
             parsed.append(row)
             continue
 
-        # Всё ОК
         parsed.append({
             'sender':    sender,
             'receiver':  receiver,
@@ -85,9 +87,12 @@ def parse_transactions(raw_text: str) -> tuple[list[dict], list[str]]:
 
 
 def validate_params(threshold_str: str, tx_count_str: str, wallet_count_str: str) -> dict[str, str]:
+    """
+    Валидирует параметры формы. Возвращает словарь {поле: сообщение_об_ошибке};
+    пустой словарь означает, что все параметры корректны.
+    """
     errors: dict[str, str] = {}
 
-    # Порог
     try:
         t = int(threshold_str)
         if not (2 <= t <= 20):
@@ -95,7 +100,6 @@ def validate_params(threshold_str: str, tx_count_str: str, wallet_count_str: str
     except (ValueError, TypeError):
         errors['threshold'] = 'Введите целое число от 2 до 20.'
 
-    # Кол-во транзакций
     try:
         c = int(tx_count_str)
         if not (1 <= c <= 50):
@@ -103,7 +107,6 @@ def validate_params(threshold_str: str, tx_count_str: str, wallet_count_str: str
     except (ValueError, TypeError):
         errors['tx_count'] = 'Введите целое число от 1 до 50.'
 
-    # Кол-во кошельков
     try:
         w = int(wallet_count_str)
         if not (2 <= w <= 20):
@@ -115,6 +118,7 @@ def validate_params(threshold_str: str, tx_count_str: str, wallet_count_str: str
 
 
 def filter_valid(parsed_rows: list[dict]) -> list[dict]:
+    """Оставляет только валидные строки и возвращает их в виде чистых словарей транзакций."""
     return [
         {
             'sender':    r['sender'],

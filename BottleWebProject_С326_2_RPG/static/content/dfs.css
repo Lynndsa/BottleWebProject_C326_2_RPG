@@ -219,6 +219,17 @@
         transform: scale(0.97);
     }
 
+.btn--danger-soft {
+    background: #fff1f2;
+    color: #be123c;
+    border: 1.5px solid #fecdd3;
+}
+
+    .btn--danger-soft:hover {
+        background: #ffe4e6;
+        border-color: #fda4af;
+    }
+
 .btn-generate-tsp {
     display: inline-block;
     padding: 0.9rem 2.25rem; /* 0.6/1.5 × 1.5 */
@@ -262,14 +273,20 @@
 /* ── Лейаут формы + графа ── */
 .tx-layout {
     display: grid;
-    grid-template-columns: 660px 1fr; /* 440 × 1.5 */
-    gap: 3rem; /* 2 × 1.5 */
+    grid-template-columns: 660px 1fr;
+    gap: 3rem;
     align-items: start;
     margin-bottom: 3rem;
 }
 
-.tx-form, .tx-graph {
+.tx-form {
     min-width: 0;
+}
+
+.tx-graph {
+    min-width: 0;
+    /* Граф не выталкивает таблицу снизу */
+    contain: layout;
 }
 
 /* ── Форма ── */
@@ -334,10 +351,26 @@ input[type="number"], input[type="text"], textarea {
 }
 
 .error-msg {
+    display: block;
     font-size: 1.425rem; /* 0.95 × 1.5 */
     color: var(--danger);
     font-weight: 700;
     margin-top: 6px;
+}
+
+.error-banner {
+    display: flex;
+    align-items: flex-start;
+    font-size: 1.425rem; /* 0.95 × 1.5 */
+    gap: 0.75rem;
+    background: #fff1f2;
+    border: 1.5px solid #fda4af;
+    border-radius: 10px;
+    padding: 0.9rem 1.2rem;
+    color: #be123c;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 /* Слайдер */
@@ -1577,12 +1610,10 @@ tr.row-invalid td {
     }
 
     .dfs-graph-wrap svg {
-        position: absolute;
-        top: 0;
-        left: 0;
+        display: block;
         width: 100%;
         height: 100%;
-        display: block;
+        overflow: visible;
     }
 
 .dfs-controls {
@@ -1659,12 +1690,10 @@ tr.row-invalid td {
     }
 
     .dfs-graph-wrap svg {
-        position: absolute;
-        top: 0;
-        left: 0;
+        display: block;
         width: 100%;
         height: 100%;
-        display: block;
+        overflow: visible;
     }
 
 .dfs-controls {
@@ -1937,4 +1966,9 @@ tr.row-invalid td {
     box-shadow: none !important;
     cursor: not-allowed !important;
     pointer-events: none;
+}
+
+.accordion-content h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
 }

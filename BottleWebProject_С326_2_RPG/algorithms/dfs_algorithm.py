@@ -1,28 +1,11 @@
-"""
-dfs_algorithm.py — DFS-анализ графа финансовых транзакций.
-
-Задача (Вариант 3): найти ОДИН самый длинный путь без циклов
-(максимальная по числу рёбер последовательность переводов).
-При равной длине побеждает путь с максимальной суммой.
-Путь помечается подозрительным, если его длина >= threshold.
-"""
-
 from collections import defaultdict
-
 
 Transaction = dict
 PathResult  = dict
 
 
-# ---------------------------------------------------------------------------
-# Построение графа
-# ---------------------------------------------------------------------------
-
 def build_graph(transactions: list[Transaction]) -> dict[str, list[tuple]]:
-    """
-    Список смежности: adj[sender] = [(receiver, amount, timestamp), ...]
-    Рёбра каждой вершины отсортированы по возрастанию timestamp.
-    """
+    """Строит список смежности из транзакций. Рёбра каждого узла отсортированы по timestamp."""
     adj: dict[str, list[tuple]] = defaultdict(list)
     for tx in transactions:
         adj[tx['sender']].append((
@@ -36,16 +19,13 @@ def build_graph(transactions: list[Transaction]) -> dict[str, list[tuple]]:
 
 
 def get_all_nodes(transactions: list[Transaction]) -> set[str]:
+    """Возвращает множество всех уникальных кошельков из списка транзакций."""
     nodes = set()
     for tx in transactions:
         nodes.add(tx['sender'])
         nodes.add(tx['receiver'])
     return nodes
 
-
-# ---------------------------------------------------------------------------
-# DFS — поиск ОДНОГО самого длинного пути
-# ---------------------------------------------------------------------------
 
 def _dfs(
     node: str,
@@ -54,11 +34,14 @@ def _dfs(
     path_nodes: list[str],
     path_edges: list[dict],
     last_ts: int,
-    best: list,          # best[0] = лучший PathResult на данный момент
+    best: list,          # best[0] — лучший PathResult; список используется для мутации внутри рекурсии
 ) -> None:
     """
-    Рекурсивный DFS с backtracking.
-    Обновляет best[0] если текущий путь длиннее (или длиннее по сумме при равной длине).
+    Рекурсивный DFS с backtracking. Обходит граф от node, соблюдая хронологию
+    и запрет на повторное посещение вершин.
+
+    В тупике (нет допустимых продолжений) сравнивает текущий путь с best[0]
+    и обновляет его, если путь длиннее (тай-брейк — большая сумма).
     """
     neighbors = adj.get(node, [])
     has_valid_neighbor = False
@@ -67,7 +50,7 @@ def _dfs(
         if receiver in visited:
             continue
         if ts <= last_ts:
-            continue  # нарушение хронологии
+            continue  # нарушение хронологии — пропускаем ребро
 
         has_valid_neighbor = True
         visited.add(receiver)
@@ -81,12 +64,10 @@ def _dfs(
 
         _dfs(receiver, adj, visited, path_nodes, path_edges, ts, best)
 
-        # Backtracking
         path_nodes.pop()
         path_edges.pop()
         visited.discard(receiver)
 
-    # Тупик — нет продолжений. Фиксируем путь если в нём есть хоть одно ребро.
     if not has_valid_neighbor and path_edges:
         total_amount = sum(e['amount'] for e in path_edges)
         current: PathResult = {
@@ -97,7 +78,6 @@ def _dfs(
             'start_ts':     path_edges[0]['timestamp'],
             'end_ts':       path_edges[-1]['timestamp'],
         }
-        # Сравниваем с лучшим: приоритет — длина, тай-брейк — сумма
         if best[0] is None:
             best[0] = current
         else:
@@ -113,19 +93,10 @@ def find_longest_path(
     threshold: int = 4,
 ) -> dict:
     """
-    Главная функция: находит ОДИН самый длинный бесцикловый путь в графе.
+    Ищет самый длинный хронологический путь в графе транзакций (глобальный DFS).
 
-    Возвращает dict:
-    {
-        'path':             PathResult | None,   # единственный лучший путь
-        'paths':            [PathResult] | [],   # список из одного пути (для совместимости с шаблоном)
-        'total_tx':         int,
-        'total_wallets':    int,
-        'max_chain_len':    int,
-        'suspicious_count': int,
-        'threshold':        int,
-        'transactions':     list[dict],
-    }
+    Путь считается подозрительным, если число рёбер в нём >= threshold.
+    Возвращает словарь с найденным путём, статистикой и аннотированной таблицей транзакций.
     """
     if not transactions:
         return _empty_result(threshold)
@@ -133,9 +104,9 @@ def find_longest_path(
     adj   = build_graph(transactions)
     nodes = get_all_nodes(transactions)
 
-    best: list = [None]   # изменяемый контейнер для передачи в рекурсию
+    best: list = [None]  # изменяемый контейнер для передачи лучшего результата в рекурсию
 
-    # Запускаем DFS из КАЖДОЙ вершины — ищем глобальный максимум
+    # Запускаем DFS из каждой вершины, чтобы не пропустить глобальный максимум
     for start in nodes:
         visited = {start}
         _dfs(
@@ -150,19 +121,18 @@ def find_longest_path(
 
     longest: PathResult | None = best[0]
 
-    # Помечаем подозрительным
     suspicious_edges: set[tuple] = set()
     if longest is not None:
         longest['is_suspicious'] = longest['edge_count'] >= threshold
         if longest['is_suspicious']:
             for e in longest['edges']:
                 suspicious_edges.add((e['sender'], e['receiver'], e['timestamp']))
-    
+
     max_len   = longest['edge_count'] if longest else 0
     sus_count = 1 if (longest and longest['is_suspicious']) else 0
     paths     = [longest] if longest else []
 
-    # Таблица транзакций с пометкой
+    # Аннотируем каждую транзакцию флагом вхождения в подозрительный путь
     tx_table = []
     for tx in transactions:
         key = (tx['sender'], tx['receiver'], int(tx['timestamp']))
@@ -191,6 +161,7 @@ find_all_max_paths = find_longest_path
 
 
 def _empty_result(threshold: int) -> dict:
+    """Возвращает пустую структуру результата при отсутствии транзакций."""
     return {
         'path':             None,
         'paths':            [],
