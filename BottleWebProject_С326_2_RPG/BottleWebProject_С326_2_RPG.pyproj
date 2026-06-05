@@ -13,7 +13,7 @@
     <WorkingDirectory>.</WorkingDirectory>
     <LaunchProvider>Web launcher</LaunchProvider>
     <OutputPath>.</OutputPath>
-    <WebBrowserUrl>http://localhost</WebBrowserUrl>
+    <WebBrowserUrl>http://localhost:5555/</WebBrowserUrl>
     <PythonDebugWebServerCommandArguments>--debug $(CommandLineArguments)</PythonDebugWebServerCommandArguments>
     <SuppressCollectPythonCloudServiceFiles>true</SuppressCollectPythonCloudServiceFiles>
     <Name>BottleWebProject_С326_2_RPG</Name>
@@ -22,7 +22,7 @@
     <SuppressPackageInstallationPrompt>True</SuppressPackageInstallationPrompt>
     <TestFramework>unittest</TestFramework>
     <UnitTestPattern>test*.py</UnitTestPattern>
-    <UnitTestRootDirectory>.</UnitTestRootDirectory>
+    <UnitTestRootDirectory>test</UnitTestRootDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -43,7 +43,25 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="app.py" />
-    <Compile Include="test_dfs.py">
+    <Compile Include="test\bfs_test_selenium.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_bfs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_dfs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\test_tsp.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\tsp_test_selenium.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tools\dfs_tools.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test_selenium_dfs.py" />
@@ -72,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="algorithms\" />
+    <Folder Include="test\" />
     <Folder Include="visual\" />
     <Folder Include="tools\" />
     <Folder Include="static\content\image\" />
@@ -129,6 +148,9 @@
     <Content Include="static\scripts\_references.js" />
     <Content Include="test_data_invalid.txt" />
     <Content Include="test_data_large.txt" />
+    <Content Include="test\data.txt">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="views\about.tpl" />
     <Content Include="views\bfs.tpl">
       <SubType>Code</SubType>
